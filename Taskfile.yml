@@ -1,0 +1,84 @@
+# Taskfile.yml — Rex Instrumenta 统一任务入口 (go-task)
+#
+# 安装 task:  go install github.com/go-task/task/v3/cmd/task@latest
+#            或  winget install Task.Task  /  scoop install task
+#
+# 常用:
+#   task            # 列出所有任务
+#   task dev        # Wails 实时开发(热重载)
+#   task build      # 普通构建
+#   task build:min  # 体积优化构建(strip 符号 + trimpath + UPX 压缩)
+#   task test       # Go + 前端单测
+
+version: '3'
+silent: true
+
+vars:
+  # strip 符号表(-s) + DWARF 调试信息(-w), exe 直接小一截
+  LDFLAGS: '-s -w'
+  # UPX: --best --lzma 体积最小(压缩慢); 注意压缩后个别杀软可能误报
+  UPXFLAGS: '--best --lzma'
+
+tasks:
+  default:
+    desc: '列出所有任务'
+    cmds:
+      - task --list
+
+  dev:
+    desc: 'Wails 实时开发(热重载)'
+    cmds:
+      - wails dev
+
+  build:
+    desc: '构建可分发 exe → build/bin/'
+    cmds:
+      - wails build
+
+  build:min:
+    desc: '体积优化构建: -trimpath + strip 符号(-s -w) + UPX 压缩(独立步骤)'
+    cmds:
+      # UPX 拆成独立步骤, 不用 wails 内置 -upx: 规避 wails 收尾删 <name>-res.syso 的时序坑
+      # (--best --lzma 压缩慢 + China 版 Defender 扫 UPX 产物, 易撞 "cannot find -res.syso" FATAL)
+      - wails build -trimpath -ldflags "{{.LDFLAGS}}"
+      - upx {{.UPXFLAGS}} build/bin/rex-instrumenta-alpha.exe
+      - task: size
+
+  size:
+    desc: '打印产物体积'
+    cmds:
+      # 不用 $_/$var: go-task 的 shell 会吞 $ 变量; 用纯表达式格式化
+      - cmd: powershell -NoProfile -Command "'rex-instrumenta-alpha.exe  {0:N2} MB' -f ((Get-Item build/bin/rex-instrumenta-alpha.exe).Length/1MB)"
+
+  generate:
+    desc: '重新生成 Wails 绑定(改了 Go 绑定方法后跑)'
+    cmds:
+      - wails generate module
+
+  # ─── 测试 ───────────────────────────────────────────────
+  test:
+    desc: 'Go + 前端单测'
+    cmds:
+      - task: test:go
+      - task: test:web
+
+  test:go:
+    desc: 'Go 单测(diff 引擎等)'
+    cmds:
+      - go test ./internal/...
+
+  test:web:
+    desc: '前端核心单测(vitest)'
+    cmds:
+      - npm --prefix frontend run test
+
+  typecheck:
+    desc: '前端类型检查(vue-tsc)'
+    cmds:
+      - npm --prefix frontend run typecheck
+
+  check:
+    desc: '交付前全检: typecheck + 全部单测'
+    cmds:
+      - task: typecheck
+      - task: test

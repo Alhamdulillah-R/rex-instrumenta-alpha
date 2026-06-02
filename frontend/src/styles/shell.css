@@ -1,0 +1,200 @@
+/* App shell — nav rail / topbar / 内容卡片. 移植自 rex-mirror-realm shell.css. */
+
+/* ─── 侧边导航 — 右上/右下内插圆角, 左贴 viewport ─── */
+.rex-nav {
+  background: var(--rex-surface-container-low, var(--rex-surface-dim)) !important;
+  border-right: 1px solid var(--rex-outline-variant) !important;
+  border-top-right-radius: 28px !important;
+  border-bottom-right-radius: 28px !important;
+  transition: background var(--rex-motion-standard), width var(--rex-motion-emphasized) !important;
+  overflow: hidden;
+}
+.rex-nav__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 18px 12px;
+  min-height: 64px;
+  transition: padding var(--rex-motion-emphasized), justify-content var(--rex-motion-emphasized);
+}
+.rex-nav__logo.collapsed {
+  justify-content: center;
+  padding: 20px 0 12px;
+}
+.rex-nav__logo-img {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: block;
+  object-fit: contain;
+  transition: transform var(--rex-motion-spring);
+}
+.rex-nav__logo-img:hover {
+  transform: scale(1.08) rotate(-6deg);
+}
+.rex-nav__logo-text {
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.3px;
+  color: var(--rex-primary);
+  white-space: nowrap;
+}
+.rex-nav__item {
+  margin-bottom: 2px !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  letter-spacing: 0.1px !important;
+  transition: all var(--rex-motion-standard) !important;
+}
+.rex-nav__item.v-list-item--active {
+  background: var(--rex-primary-container) !important;
+  color: var(--rex-on-primary-container) !important;
+}
+.rex-nav__item:hover:not(.v-list-item--active) {
+  background: var(--rex-hover-overlay) !important;
+}
+.rex-nav__item:active {
+  transform: scale(0.97);
+  transition-duration: 80ms !important;
+}
+/* rail(收窄)模式图标居中:
+   v-list-item 默认 display:grid(prepend 在左列), justify-content 无效 → 强制 flex 居中,
+   并隐藏 prepend 给标题预留的 spacer 与空 content. */
+.rex-nav.v-navigation-drawer--rail .rex-nav__item {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 0 !important;
+}
+.rex-nav.v-navigation-drawer--rail .rex-nav__item .v-list-item__prepend {
+  margin: 0 !important;
+  width: auto !important;
+}
+.rex-nav.v-navigation-drawer--rail .rex-nav__item .v-list-item__prepend .v-list-item__spacer {
+  display: none !important;
+  width: 0 !important;
+}
+.rex-nav.v-navigation-drawer--rail .rex-nav__item .v-list-item__content {
+  display: none !important;
+}
+.rex-nav__collapse-btn .v-icon {
+  transition: transform var(--rex-motion-emphasized) !important;
+}
+.rex-nav__collapse-btn:hover .v-icon {
+  transform: translateX(-2px);
+}
+
+/* ─── 自定义无边框标题栏(v-app-bar) ─── */
+.rex-titlebar {
+  background: var(--rex-surface-container-low, var(--rex-bg)) !important;
+  border-bottom: 1px solid var(--rex-outline-variant) !important;
+  box-shadow: none !important;
+}
+.rex-titlebar .v-toolbar__content {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px 0 10px;
+}
+.rex-nodrag { --wails-draggable: no-drag; }
+.rex-titlebar__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rex-titlebar__logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+.rex-titlebar__brand {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.2px;
+  color: var(--rex-on-bg);
+}
+.rex-titlebar__alpha {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--rex-primary);
+  opacity: 0.85;
+}
+.rex-titlebar__right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.rex-titlebar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 30px;
+  border: none;
+  border-radius: var(--rex-radius-sm);
+  background: transparent;
+  color: var(--rex-on-surface-variant);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, transform 120ms ease;
+}
+.rex-titlebar__btn:hover {
+  background: var(--rex-hover-overlay);
+  color: var(--rex-primary);
+}
+.rex-titlebar__btn:active {
+  transform: scale(0.86);
+}
+.rex-titlebar__btn--close:hover {
+  background: #e53935;
+  color: #fff;
+}
+
+/* ─── 顶部栏(工具标题) ─── */
+.rex-main {
+  background: var(--rex-bg) !important;
+  transition: background var(--rex-motion-standard) !important;
+}
+.rex-topbar {
+  display: flex;
+  align-items: center;
+  padding: 14px 28px 10px;
+}
+.rex-topbar__title {
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--rex-on-bg);
+  transition: color var(--rex-motion-standard);
+}
+
+/* ─── 内容卡片 — 整块圆角浮起, 跟 nav 形成独立卡片视觉 ─── */
+.rex-content {
+  background: var(--rex-surface);
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: 28px;
+  margin: 0 16px 16px;
+  padding: 14px 18px 10px;
+  box-shadow: 0 1px 3px var(--rex-shadow-color);
+  /* 减: 标题栏 40 + 工具标题 ~52 + 底margin 16 + 缓冲 */
+  height: calc(100vh - 124px);
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: background var(--rex-motion-standard), border-color var(--rex-motion-standard);
+}
+
+/* logo 文字展开/收起过渡 */
+.logo-text-enter-active {
+  transition: opacity 350ms ease 80ms, transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1) 40ms;
+}
+.logo-text-leave-active {
+  transition: opacity 120ms cubic-bezier(0.4, 0, 1, 1), transform 160ms cubic-bezier(0.4, 0, 1, 1);
+}
+.logo-text-enter-from {
+  opacity: 0;
+  transform: translateX(-8px) scale(0.92);
+}
+.logo-text-leave-to {
+  opacity: 0;
+  transform: translateX(-10px) scale(0.9);
+}

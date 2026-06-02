@@ -1,0 +1,157 @@
+/* ═══════════════════════════════════════════════════════════════
+   Material Design 3 Expressive — Monet 主题令牌 (莫奈三)
+   移植自 rex-mirror-realm 前端, .rex-* 组件 + canvas 渲染器都靠这些变量取色.
+   canvas 通过 getComputedStyle 读 --rex-json-* / --rex-diff-*, 主题切换自动响应.
+   ═══════════════════════════════════════════════════════════════ */
+
+.rex-theme--dark {
+  /* 字体统一: 全用 Windows 自带字体, 不依赖未安装的 Google Sans/JetBrains Mono(会乱回退).
+     sans 拉丁 Segoe UI、mono 拉丁 Cascadia Mono(无连字), 中文统一回退微软雅黑 —— canvas 与 DOM 同栈. */
+  --rex-font: 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui, sans-serif;
+  --rex-mono: 'Cascadia Mono', 'Consolas', 'Microsoft YaHei UI', 'Microsoft YaHei', monospace;
+  --rex-bg: #0f0f1a;
+  --rex-surface: #1a1a2e;
+  --rex-surface-dim: #141425;
+  --rex-surface-bright: #2a2a4a;
+  --rex-surface-container: #1e1e35;
+  --rex-surface-container-low: #171728;
+  --rex-surface-container-high: #252542;
+  --rex-outline: #49455e;
+  --rex-outline-variant: #332f42;
+  --rex-primary: #c4b5fd;
+  --rex-primary-rgb: 196, 181, 253;
+  --rex-primary-container: #3b2d6e;
+  --rex-on-primary-container: #ffffff;
+  --rex-secondary: #93c5fd;
+  --rex-tertiary: #6ee7b7;
+  --rex-error: #fca5a5;
+  --rex-warning: #fde68a;
+  --rex-on-surface: #ffffff;
+  --rex-on-surface-variant: #ffffff;
+  --rex-on-bg: #ffffff;
+  --rex-shadow-color: rgba(0,0,0,0.5);
+  --rex-hover-overlay: rgba(255,255,255,0.04);
+  --rex-active-overlay: rgba(255,255,255,0.08);
+  --rex-divider: rgba(255,255,255,0.06);
+  --rex-accent-bg: rgba(196,181,253,0.12);
+  --rex-accent-bg-strong: rgba(196,181,253,0.18);
+  --rex-accent-border: rgba(196,181,253,0.28);
+  --rex-danger-bg: rgba(252,165,165,0.14);
+  --rex-danger-bg-strong: rgba(252,165,165,0.22);
+  --rex-warning-bg: rgba(253,230,138,0.14);
+  --rex-warning-bg-strong: rgba(253,230,138,0.22);
+  --rex-elevation-1: rgba(196,181,253,0.05);
+  --rex-elevation-2: rgba(196,181,253,0.08);
+  --rex-elevation-3: rgba(196,181,253,0.11);
+
+  /* canvas JSON 语法配色 — 提亮 + 加高 punct/index/guide 对比, dark 下更清晰 */
+  --rex-json-key: #d3c4ff;
+  --rex-json-string: #9af0b4;
+  --rex-json-number: #ffd95e;
+  --rex-json-bool: #a7d0ff;
+  --rex-json-null: #b6bdff;
+  --rex-json-punct: rgba(255,255,255,0.66);
+  --rex-json-index: rgba(255,255,255,0.62);
+  --rex-json-guide: rgba(255,255,255,0.12);
+  --rex-json-guide-active: rgba(196,181,253,0.45);
+  --rex-json-row-hover: rgba(255,255,255,0.07);
+  --rex-json-row-selected: rgba(196,181,253,0.22);
+  --rex-json-match: rgba(253,230,138,0.32);
+  --rex-json-match-active: rgba(253,230,138,0.62);
+  --rex-json-triangle: rgba(255,255,255,0.78);
+
+  /* canvas diff 配色 */
+  --rex-diff-same: rgba(255,255,255,0.42);
+  --rex-diff-changed-bg: rgba(252,165,165,0.14);
+  --rex-diff-changed-fg: #fca5a5;
+  --rex-diff-added-bg: rgba(110,231,183,0.14);
+  --rex-diff-added-fg: #6ee7b7;
+  --rex-diff-removed-bg: rgba(252,165,165,0.10);
+  --rex-diff-removed-fg: #fda4af;
+
+  --rex-radius-sm: 8px;
+  --rex-radius-md: 12px;
+  --rex-radius-lg: 16px;
+  --rex-radius-xl: 28px;
+  --rex-radius-full: 9999px;
+  --rex-motion-standard: 300ms cubic-bezier(0.2, 0, 0, 1);
+  --rex-motion-emphasized: 500ms cubic-bezier(0.2, 0, 0, 1);
+  --rex-motion-spring: 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  color-scheme: dark;
+}
+
+.rex-theme--light {
+  /* 字体统一: 全用 Windows 自带字体, 不依赖未安装的 Google Sans/JetBrains Mono(会乱回退).
+     sans 拉丁 Segoe UI、mono 拉丁 Cascadia Mono(无连字), 中文统一回退微软雅黑 —— canvas 与 DOM 同栈. */
+  --rex-font: 'Segoe UI', 'Microsoft YaHei UI', 'Microsoft YaHei', system-ui, sans-serif;
+  --rex-mono: 'Cascadia Mono', 'Consolas', 'Microsoft YaHei UI', 'Microsoft YaHei', monospace;
+  --rex-bg: #F8FBFF;
+  --rex-surface: #FFFFFF;
+  --rex-surface-dim: #E6EDFB;
+  --rex-surface-bright: #FFFFFF;
+  --rex-surface-container: #F3F7FF;
+  --rex-surface-container-low: #F8FBFF;
+  --rex-surface-container-high: #ECF2FF;
+  --rex-outline: #8793BE;
+  --rex-outline-variant: rgba(18, 46, 138, 0.12);
+  --rex-primary: #122E8A;
+  --rex-primary-rgb: 18, 46, 138;
+  --rex-primary-container: #DFE7FF;
+  --rex-on-primary-container: #122E8A;
+  --rex-secondary: #294EBD;
+  --rex-tertiary: #173894;
+  --rex-error: #B83A32;
+  --rex-warning: #9A6225;
+  --rex-on-surface: #000000;
+  --rex-on-surface-variant: #000000;
+  --rex-on-bg: #000000;
+  --rex-shadow-color: rgba(18, 46, 138, 0.12);
+  --rex-hover-overlay: rgba(18, 46, 138, 0.05);
+  --rex-active-overlay: rgba(18, 46, 138, 0.10);
+  --rex-divider: rgba(18, 46, 138, 0.10);
+  --rex-accent-bg: rgba(18, 46, 138, 0.08);
+  --rex-accent-bg-strong: rgba(18, 46, 138, 0.14);
+  --rex-accent-border: rgba(18, 46, 138, 0.22);
+  --rex-danger-bg: rgba(184, 58, 50, 0.08);
+  --rex-danger-bg-strong: rgba(184, 58, 50, 0.14);
+  --rex-warning-bg: rgba(154, 98, 37, 0.10);
+  --rex-warning-bg-strong: rgba(154, 98, 37, 0.16);
+  --rex-elevation-1: rgba(18, 46, 138, 0.05);
+  --rex-elevation-2: rgba(18, 46, 138, 0.08);
+  --rex-elevation-3: rgba(18, 46, 138, 0.12);
+
+  /* canvas JSON 语法配色 — 加深 punct/index, 白底上更清晰 */
+  --rex-json-key: #0f257a;
+  --rex-json-string: #0f6b32;
+  --rex-json-number: #9a4708;
+  --rex-json-bool: #1740c4;
+  --rex-json-null: #595f6b;
+  --rex-json-punct: rgba(18,46,138,0.62);
+  --rex-json-index: rgba(18,46,138,0.6);
+  --rex-json-guide: rgba(18,46,138,0.16);
+  --rex-json-guide-active: rgba(18,46,138,0.45);
+  --rex-json-row-hover: rgba(18,46,138,0.06);
+  --rex-json-row-selected: rgba(18,46,138,0.14);
+  --rex-json-match: rgba(154,98,37,0.24);
+  --rex-json-match-active: rgba(154,98,37,0.5);
+  --rex-json-triangle: rgba(18,46,138,0.7);
+
+  /* canvas diff 配色 */
+  --rex-diff-same: rgba(18,46,138,0.40);
+  --rex-diff-changed-bg: rgba(184,58,50,0.10);
+  --rex-diff-changed-fg: #B83A32;
+  --rex-diff-added-bg: rgba(21,128,61,0.12);
+  --rex-diff-added-fg: #15803d;
+  --rex-diff-removed-bg: rgba(184,58,50,0.08);
+  --rex-diff-removed-fg: #b91c1c;
+
+  --rex-radius-sm: 8px;
+  --rex-radius-md: 12px;
+  --rex-radius-lg: 16px;
+  --rex-radius-xl: 28px;
+  --rex-radius-full: 9999px;
+  --rex-motion-standard: 300ms cubic-bezier(0.2, 0, 0, 1);
+  --rex-motion-emphasized: 500ms cubic-bezier(0.2, 0, 0, 1);
+  --rex-motion-spring: 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  color-scheme: light;
+}

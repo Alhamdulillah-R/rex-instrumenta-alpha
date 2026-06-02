@@ -1,0 +1,203 @@
+/* Plugins 视图 — 莫奈三. 随工具 chunk 懒加载. */
+
+.rex-plugins {
+  flex: 1;
+  display: flex;
+  gap: 14px;
+  min-height: 0;
+  height: 100%;
+}
+
+/* 左侧插件列表 */
+.rex-plugins__side {
+  flex: 0 0 240px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: var(--rex-radius-lg);
+  background: var(--rex-surface-container-low, var(--rex-surface-container));
+  overflow: hidden;
+}
+.rex-plugins__side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid var(--rex-divider);
+}
+.rex-plugins__count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rex-on-surface-variant);
+}
+.rex-plugins__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rex-plugins__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: var(--rex-radius-md);
+  background: transparent;
+  color: var(--rex-on-surface);
+  font-family: var(--rex-font);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+.rex-plugins__item:hover {
+  background: var(--rex-hover-overlay);
+}
+.rex-plugins__item:active {
+  transform: scale(0.98);
+}
+.rex-plugins__item.active {
+  background: var(--rex-primary-container);
+  color: var(--rex-on-primary-container);
+}
+.rex-plugins__item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+.rex-plugins__del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.5;
+  transition: all 150ms ease;
+}
+.rex-plugins__del:hover {
+  opacity: 1;
+  background: var(--rex-danger-bg, rgba(252, 165, 165, 0.16));
+  color: var(--rex-error);
+}
+.rex-plugins__empty-side {
+  padding: 18px 8px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.7;
+}
+.rex-plugins__doc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--rex-divider);
+  color: var(--rex-primary);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 150ms ease;
+}
+.rex-plugins__doc {
+  border: none;
+  cursor: pointer;
+  font-family: var(--rex-font);
+  width: 100%;
+}
+.rex-plugins__doc:hover {
+  background: var(--rex-hover-overlay);
+}
+.rex-plugins__doc.active {
+  background: var(--rex-accent-bg);
+}
+
+/* SDK 文档应用内查看 */
+.rex-plugins__docview {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+.rex-plugins__docview-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 8px 16px;
+  border-bottom: 1px solid var(--rex-outline-variant);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rex-on-surface);
+}
+.rex-plugins__docview-bar span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.rex-plugins__docview-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin: 0;
+  padding: 18px 22px;
+  font-family: var(--rex-mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--rex-on-surface);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 右侧渲染舞台 */
+.rex-plugins__stage {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: var(--rex-radius-lg);
+  background: var(--rex-surface);
+  overflow: hidden;
+  display: flex;
+}
+.rex-plugins__frame {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: var(--rex-bg);
+}
+.rex-plugins__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  color: var(--rex-on-surface-variant);
+}
+.rex-plugins__empty p { font-size: 14px; }
+.rex-plugins__empty code {
+  font-family: var(--rex-mono);
+  font-size: 12px;
+  background: var(--rex-surface-container);
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+.rex-plugins__empty-sub { font-size: 12px; opacity: 0.78; max-width: 460px; line-height: 1.7; }
+.rex-plugins__err {
+  color: var(--rex-error);
+  font-size: 12.5px;
+  font-family: var(--rex-mono);
+}

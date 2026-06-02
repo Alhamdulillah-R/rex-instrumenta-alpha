@@ -1,0 +1,650 @@
+/* JSON 工具样式 — 莫奈三. 随工具 chunk 懒加载(在 JsonToolView 里 import). */
+
+.rex-json-tool {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+/* ─── 模式 tab ─── */
+.rex-json-tool__tabs {
+  display: flex;
+  gap: 8px;
+  padding: 2px 2px 14px;
+  flex-shrink: 0;
+}
+.rex-json-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 18px;
+  border-radius: var(--rex-radius-full);
+  border: 1px solid var(--rex-outline-variant);
+  background: transparent;
+  color: var(--rex-on-surface-variant);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--rex-motion-standard);
+}
+.rex-json-tab:hover {
+  background: var(--rex-hover-overlay);
+}
+.rex-json-tab.active {
+  background: var(--rex-primary-container);
+  color: var(--rex-on-primary-container);
+  border-color: transparent;
+}
+.rex-json-tool__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+/* ─── 解析面板 ─── */
+.rex-parse {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+.rex-parse__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+.rex-parse__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+.rex-parse__sep {
+  width: 1px;
+  height: 22px;
+  background: var(--rex-outline-variant);
+  margin: 0 4px;
+}
+.rex-parse__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 14px;
+}
+.rex-parse__input {
+  flex: 0 0 38%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+  transition: flex-basis var(--rex-motion-emphasized), opacity var(--rex-motion-standard),
+    margin-right var(--rex-motion-emphasized);
+}
+/* 收起: flex-basis→0 平滑滑出, 负 margin 抵消父 gap 让树真正贴左 */
+.rex-parse__input--collapsed {
+  flex-basis: 0;
+  opacity: 0;
+  margin-right: -14px;
+  pointer-events: none;
+}
+.rex-parse__textarea {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: var(--rex-radius-lg);
+  background: var(--rex-surface-container-low, var(--rex-surface-container));
+  color: var(--rex-on-surface);
+  font-family: var(--rex-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color var(--rex-motion-standard), box-shadow var(--rex-motion-standard);
+}
+.rex-parse__textarea:focus {
+  border-color: var(--rex-primary);
+  box-shadow: 0 0 0 2px rgba(var(--rex-primary-rgb), 0.18);
+}
+.rex-parse__textarea::placeholder {
+  color: var(--rex-on-surface-variant);
+  opacity: 0.5;
+}
+.rex-parse__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--rex-radius-md);
+  background: var(--rex-danger-bg);
+  color: var(--rex-error);
+  font-size: 12px;
+  font-family: var(--rex-mono);
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+.rex-parse__tree {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: var(--rex-radius-lg);
+  background: var(--rex-surface-container-low, var(--rex-surface));
+  overflow: hidden;
+}
+.rex-parse__tree .rex-tree-canvas {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 选中节点条 — 进场动画 + 同结构计数 chip */
+.rex-parse__selbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--rex-outline-variant);
+  background: var(--rex-surface-container);
+  flex-shrink: 0;
+  animation: rexSelbarIn 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+@keyframes rexSelbarIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rex-parse__selpath {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--rex-mono);
+  font-size: 12px;
+  color: var(--rex-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* 同结构出现次数 chip — 点了筛出全部同结构节点 */
+.rex-parse__selcount {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: var(--rex-radius-full);
+  border: 1px solid var(--rex-accent-border);
+  background: var(--rex-accent-bg);
+  color: var(--rex-primary);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--rex-mono);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 150ms ease;
+}
+.rex-parse__selcount:hover {
+  background: var(--rex-accent-bg-strong);
+  transform: translateY(-1px);
+}
+
+/* ─── 搜索栏 pill ─── */
+.rex-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 16px;
+  background: var(--rex-surface-container);
+  border: 1px solid transparent;
+  border-radius: var(--rex-radius-full);
+  min-width: 300px;
+  flex: 0 1 420px;
+  box-shadow: 0 1px 3px var(--rex-shadow-color);
+  transition: all var(--rex-motion-standard);
+}
+.rex-search-bar:focus-within {
+  background: var(--rex-surface);
+  box-shadow: 0 2px 8px var(--rex-shadow-color), 0 0 0 2px var(--rex-primary);
+}
+.rex-search-bar__icon {
+  color: var(--rex-on-surface-variant);
+  flex-shrink: 0;
+}
+.rex-search-bar__input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--rex-on-surface);
+  font-family: var(--rex-font);
+  font-size: 14px;
+}
+.rex-search-bar__input::placeholder {
+  color: var(--rex-on-surface-variant);
+  opacity: 0.55;
+}
+.rex-search-bar__count {
+  font-family: var(--rex-mono);
+  font-size: 11px;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.88;
+  flex-shrink: 0;
+  min-width: 34px;
+  text-align: center;
+}
+.rex-search-bar__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 4px;
+  border: none;
+  border-radius: var(--rex-radius-sm);
+  background: transparent;
+  color: var(--rex-on-surface-variant);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.rex-search-bar__btn:hover:not(:disabled) {
+  background: var(--rex-hover-overlay);
+  color: var(--rex-primary);
+}
+.rex-search-bar__btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.rex-search-bar__toggle.active {
+  background: var(--rex-accent-bg-strong);
+  color: var(--rex-primary);
+}
+.rex-search-bar__mode {
+  margin-right: 2px;
+}
+.rex-search-bar__mode.active {
+  background: var(--rex-accent-bg-strong);
+  color: var(--rex-primary);
+}
+
+/* ─── 统计条 ─── */
+.rex-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 6px 2px;
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--rex-on-surface-variant);
+  flex-shrink: 0;
+}
+.rex-stat {
+  font-family: var(--rex-mono);
+  opacity: 0.92;
+}
+.rex-stat b {
+  color: var(--rex-on-surface);
+  opacity: 1;
+  font-weight: 700;
+}
+.rex-stat--obj b { color: var(--rex-json-key); }
+.rex-stat--arr b { color: var(--rex-json-bool); }
+.rex-stat--str b { color: var(--rex-json-string); }
+.rex-stat--num b { color: var(--rex-json-number); }
+.rex-stat-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--rex-on-surface-variant);
+  opacity: 0.3;
+}
+
+/* ─── 右键菜单 ─── */
+.rex-ctx-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+}
+.rex-ctx-menu {
+  position: fixed;
+  min-width: 180px;
+  padding: 6px;
+  background: var(--rex-surface-container-high, var(--rex-surface));
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: var(--rex-radius-md);
+  box-shadow: 0 12px 32px var(--rex-shadow-color);
+  animation: rexCtxIn 140ms cubic-bezier(0.2, 0, 0, 1);
+}
+@keyframes rexCtxIn {
+  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.rex-ctx-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--rex-radius-sm);
+  background: transparent;
+  color: var(--rex-on-surface);
+  font-size: 13px;
+  font-family: var(--rex-font);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.rex-ctx-menu__item:hover {
+  background: var(--rex-accent-bg);
+  color: var(--rex-primary);
+}
+.rex-ctx-menu__icon {
+  opacity: 0.7;
+}
+
+/* ─── 对比视图 ─── */
+.rex-compare {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  gap: 12px;
+}
+.rex-compare__inputs {
+  display: flex;
+  gap: 12px;
+  flex: 0 0 30%;
+  min-height: 120px;
+}
+.rex-compare__col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rex-compare__col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rex-compare__col-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 2px 10px;
+  border-radius: var(--rex-radius-full);
+}
+.rex-compare__col-tag--a { background: var(--rex-accent-bg); color: var(--rex-primary); }
+.rex-compare__col-tag--b { background: var(--rex-diff-added-bg); color: var(--rex-diff-added-fg); }
+.rex-compare__textarea {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: var(--rex-radius-lg);
+  background: var(--rex-surface-container-low, var(--rex-surface-container));
+  color: var(--rex-on-surface);
+  font-family: var(--rex-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color var(--rex-motion-standard);
+}
+.rex-compare__textarea:focus {
+  border-color: var(--rex-primary);
+}
+.rex-compare__bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.rex-compare__error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--rex-radius-md);
+  background: var(--rex-danger-bg);
+  color: var(--rex-error);
+  font-size: 12.5px;
+  flex-shrink: 0;
+}
+.rex-compare__result {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: var(--rex-radius-lg);
+  overflow: hidden;
+}
+.rex-compare__result .rex-tree-canvas {
+  flex: 1;
+  min-height: 0;
+}
+.rex-compare__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.75;
+}
+.rex-compare__empty p { font-size: 14px; }
+.rex-compare__empty-sub { font-size: 12px; opacity: 0.7; }
+
+/* ─── 对比汇总 chip ─── */
+.rex-cmp-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.rex-cmp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--rex-radius-full);
+  border: 1px solid var(--rex-outline-variant);
+  background: transparent;
+  color: var(--rex-on-surface-variant);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--rex-motion-standard);
+}
+.rex-cmp-chip b { font-family: var(--rex-mono); }
+.rex-cmp-chip:hover { background: var(--rex-hover-overlay); transform: translateY(-1px); }
+.rex-cmp-chip.active {
+  background: var(--rex-accent-bg-strong);
+  color: var(--rex-primary);
+  border-color: var(--rex-accent-border);
+}
+.rex-cmp-chip--changed.active { background: var(--rex-danger-bg-strong); color: var(--rex-diff-changed-fg); }
+.rex-cmp-chip--added.active { background: var(--rex-diff-added-bg); color: var(--rex-diff-added-fg); border-color: var(--rex-diff-added-fg); }
+.rex-cmp-chip--removed.active { background: var(--rex-diff-removed-bg); color: var(--rex-diff-removed-fg); }
+.rex-cmp-chip--same.active { background: var(--rex-hover-overlay); color: var(--rex-on-surface); }
+
+/* ─── 已存搜索 tag ─── */
+.rex-saved {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: -2px 0 10px;
+  flex-shrink: 0;
+}
+.rex-saved__label {
+  font-size: 11px;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.7;
+}
+.rex-saved__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px 3px 11px;
+  border-radius: var(--rex-radius-full);
+  border: 1px solid var(--rex-outline-variant);
+  background: var(--rex-surface-container);
+  color: var(--rex-on-surface-variant);
+  font-size: 11.5px;
+  font-family: var(--rex-mono);
+  cursor: pointer;
+  transition: all 150ms ease;
+  max-width: 260px;
+}
+.rex-saved__chip:hover {
+  background: var(--rex-accent-bg);
+  color: var(--rex-primary);
+  border-color: var(--rex-accent-border);
+  transform: translateY(-1px);
+}
+.rex-saved__q {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rex-saved__edit,
+.rex-saved__x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  opacity: 0.45;
+  transition: all 140ms ease;
+}
+.rex-saved__edit:hover {
+  opacity: 1;
+  color: var(--rex-primary);
+  background: var(--rex-accent-bg);
+}
+.rex-saved__x:hover {
+  opacity: 1;
+  color: var(--rex-error);
+  background: var(--rex-danger-bg, rgba(252, 165, 165, 0.16));
+}
+
+/* 改名卡片 */
+.rex-rename-card {
+  padding: 18px 18px 14px;
+  border-radius: var(--rex-radius-lg) !important;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rex-rename-card__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rex-on-surface);
+}
+.rex-rename-card__q {
+  font-family: var(--rex-mono);
+  font-size: 12px;
+  color: var(--rex-on-surface-variant);
+  background: var(--rex-surface-container);
+  padding: 6px 10px;
+  border-radius: var(--rex-radius-sm);
+  word-break: break-all;
+}
+.rex-rename-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 2px;
+}
+/* 改名输入框: 跟 chip / 主搜索框统一走 pill 全圆(Vuetify outlined 默认 4px 太方).
+   outlined 的圆角分布在 outline 的 start/end 两段, 要一起改; 文字加左 padding 避开左圆弧. */
+.rex-rename-card .v-field {
+  border-radius: var(--rex-radius-full) !important;
+}
+.rex-rename-card .v-field__outline__start {
+  border-radius: var(--rex-radius-full) 0 0 var(--rex-radius-full) !important;
+}
+.rex-rename-card .v-field__outline__end {
+  border-radius: 0 var(--rex-radius-full) var(--rex-radius-full) 0 !important;
+}
+.rex-rename-card .v-field__input {
+  padding-inline-start: 14px;
+}
+
+/* ─── 复制提示 toast(莫奈 pill)─── */
+.rex-copy-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 44px;
+  transform: translateX(-50%);
+  z-index: 4000;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  border-radius: var(--rex-radius-full);
+  background: var(--rex-primary);
+  color: var(--rex-bg);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  box-shadow: 0 10px 30px var(--rex-shadow-color);
+  pointer-events: none;
+}
+.rex-copy-toast--err {
+  background: var(--rex-error);
+}
+.rex-toast-enter-active {
+  transition: opacity 200ms ease, transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.rex-toast-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.rex-toast-enter-from {
+  opacity: 0;
+  transform: translateX(-50%) translateY(14px) scale(0.9);
+}
+.rex-toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+}
+
+/* ─── 动画补充(去僵硬) ─── */
+.rex-json-tab:active { transform: scale(0.96); transition-duration: 80ms; }
+.rex-json-tab.active { animation: rexTabPop 320ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes rexTabPop {
+  0% { transform: scale(0.94); }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.rex-search-bar__btn:active:not(:disabled) { transform: scale(0.86); transition-duration: 70ms; }
+.rex-cmp-chip:active { transform: scale(0.95); transition-duration: 80ms; }
+.rex-ctx-menu__item:active { transform: scale(0.98); }
+.rex-parse__selcount:active { transform: scale(0.94); transition-duration: 80ms; }
+
+/* 模式/视图切换淡入(配合 JsonToolView 的 <transition name="rex-fade">) */
+.rex-fade-enter-active {
+  transition: opacity 240ms cubic-bezier(0.2, 0, 0, 1), transform 240ms cubic-bezier(0.2, 0, 0, 1);
+}
+.rex-fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}

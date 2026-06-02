@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <link rel="icon" type="image/svg+xml" href="/favicon-blue.svg" />
+  <title>Rex Instrumenta α</title>
+  <style>
+    /* 启动前按上次主题预设底色, 防白屏闪烁(WebView2 启动 → Vue mount 有间隙) */
+    html { background: #0f0f1a; }
+  </style>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('ria-theme') || 'rexDark'
+        document.documentElement.style.background = t === 'rexLight' ? '#F8FBFF' : '#0f0f1a'
+      } catch (e) {}
+    })()
+  </script>
+</head>
+<body>
+<div id="app"></div>
+<script src="./src/main.ts" type="module"></script>
+</body>
+</html>

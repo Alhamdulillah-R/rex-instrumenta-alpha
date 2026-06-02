@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hello Plugin</title>
+  <!-- 莫奈三同色系 + 字体 -->
+  <link rel="stylesheet" href="/plugins/__sdk__/monet.css" />
+  <!-- 主题联动: 自动跟宿主切明暗, 暴露 window.RexPlugin -->
+  <script src="/plugins/__sdk__/rex-plugin.js"></script>
+  <!-- Vue 3 -->
+  <script src="/plugins/__sdk__/vue.js"></script>
+  <style>
+    body { padding: 28px; }
+    .wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .swatch { width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--rex-outline-variant); }
+    h1 { margin: 0; }
+    .sub { margin: 0; }
+  </style>
+</head>
+<body>
+  <div id="app" class="wrap">
+    <div>
+      <h1 class="rex-title">🧩 Hello Plugin</h1>
+      <p class="sub rex-muted">这是一个示例插件 —— 纯静态站,用内置 SDK 即可同色系 + Vue。当前主题:<b>{{ theme }}</b></p>
+    </div>
+
+    <div class="rex-card">
+      <div class="rex-title" style="font-size:15px;margin-bottom:12px">按钮</div>
+      <div class="row">
+        <button class="rex-btn" @click="count++">主按钮 · 点了 {{ count }} 次</button>
+        <button class="rex-btn rex-btn--tonal" @click="count = 0">tonal · 重置</button>
+        <button class="rex-btn rex-btn--text">text</button>
+        <button class="rex-btn rex-btn--danger">danger</button>
+      </div>
+    </div>
+
+    <div class="rex-card">
+      <div class="rex-title" style="font-size:15px;margin-bottom:12px">Chip · 输入</div>
+      <div class="row" style="margin-bottom:12px">
+        <span v-for="t in tags" :key="t" class="rex-chip" :class="{ active: t === active }" @click="active = t">{{ t }}</span>
+      </div>
+      <input class="rex-input" v-model="text" placeholder="输入点什么…" />
+      <p class="rex-muted rex-mono" style="margin:10px 0 0;font-size:12px">echo: {{ text || '(空)' }}</p>
+    </div>
+
+    <div class="rex-card">
+      <div class="rex-title" style="font-size:15px;margin-bottom:12px">同色系变量</div>
+      <div class="row">
+        <span class="swatch" style="background:var(--rex-primary)"></span> primary
+        <span class="swatch" style="background:var(--rex-secondary)"></span> secondary
+        <span class="swatch" style="background:var(--rex-tertiary)"></span> tertiary
+        <span class="swatch" style="background:var(--rex-error)"></span> error
+      </div>
+    </div>
+  </div>
+
+  <script>
+    Vue.createApp({
+      data: () => ({
+        count: 0,
+        text: '',
+        tags: ['解析', '对比', '插件'],
+        active: '插件',
+        theme: RexPlugin.isDark() ? '暗色' : '亮色',
+      }),
+      mounted() {
+        RexPlugin.onTheme((dark) => { this.theme = dark ? '暗色' : '亮色' })
+      },
+    }).mount('#app')
+  </script>
+</body>
+</html>

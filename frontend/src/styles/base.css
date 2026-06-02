@@ -1,0 +1,74 @@
+/* 全局基线 — reset / 字体 / 滚动条 / app shell. 移植自 rex-mirror-realm. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 固定布局桌面壳 — html/body/#app 全锁死 overflow, 杜绝文档级滚动条(右侧 8px 黑/白条根因).
+   内部滚动交给 .rex-content / canvas 自己处理. 根背景随主题, 兜住任何边缘缝隙. */
+html,
+body,
+#app {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+html {
+  font-family: var(--rex-font, 'Segoe UI', sans-serif);
+}
+html.rex-theme--dark { background: #0f0f1a; }
+html.rex-theme--light { background: #F8FBFF; }
+body {
+  transition: background-color var(--rex-motion-standard);
+}
+
+.rex-app {
+  font-family: var(--rex-font) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--rex-bg);
+  color: var(--rex-on-bg);
+  transition: background var(--rex-motion-standard), color var(--rex-motion-standard);
+}
+
+/* 主题响应滚动条 */
+.rex-theme--dark ::-webkit-scrollbar { width: 8px; height: 8px; }
+.rex-theme--dark ::-webkit-scrollbar-track { background: transparent; }
+.rex-theme--dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+.rex-theme--dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+.rex-theme--light ::-webkit-scrollbar { width: 8px; height: 8px; }
+.rex-theme--light ::-webkit-scrollbar-track { background: transparent; }
+.rex-theme--light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+.rex-theme--light ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
+/* 视图进入动画 */
+.rex-view-enter {
+  animation: rexViewFadeIn 350ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+@keyframes rexViewFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-enter-active,
+.fade-leave-active { transition: opacity var(--rex-motion-standard); }
+.fade-enter-from,
+.fade-leave-to { opacity: 0; }
+
+/* ─── Telegram 圆形揭示主题切换(View Transitions API)─── */
+/* 关掉默认 cross-fade, 只跑 JS 里的 clip-path 圆形动画; 按方向控制两层叠放. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* expand(切暗): 新主题在上, 圆放大铺满 */
+html[data-theme-reveal='expand']::view-transition-new(root) { z-index: 2; }
+html[data-theme-reveal='expand']::view-transition-old(root) { z-index: 1; }
+/* shrink(切亮): 旧主题在上, 圆收缩到点击点露出新主题 */
+html[data-theme-reveal='shrink']::view-transition-old(root) { z-index: 2; }
+html[data-theme-reveal='shrink']::view-transition-new(root) { z-index: 1; }

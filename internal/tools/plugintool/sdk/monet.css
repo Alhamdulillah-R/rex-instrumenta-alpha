@@ -1,0 +1,169 @@
+/* ═══════════════════════════════════════════════════════════════
+   Rex Instrumenta — Monet SDK (莫奈三) for plugins
+   <link rel="stylesheet" href="/plugins/__sdk__/monet.css">
+   主题由 rex-plugin.js 根据宿主推送在 <html> 上切 .rex-dark / .rex-light.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root,
+:root.rex-dark {
+  --rex-font: 'Google Sans Text', 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --rex-mono: 'Cascadia Code', 'JetBrains Mono', 'Consolas', monospace;
+  --rex-bg: #0f0f1a;
+  --rex-surface: #1a1a2e;
+  --rex-surface-container: #1e1e35;
+  --rex-surface-container-high: #252542;
+  --rex-outline-variant: #332f42;
+  --rex-primary: #c4b5fd;
+  --rex-primary-rgb: 196, 181, 253;
+  --rex-primary-container: #3b2d6e;
+  --rex-on-primary-container: #ffffff;
+  --rex-secondary: #93c5fd;
+  --rex-tertiary: #6ee7b7;
+  --rex-error: #fca5a5;
+  --rex-on-surface: #ffffff;
+  --rex-on-surface-variant: rgba(255, 255, 255, 0.7);
+  --rex-hover-overlay: rgba(255, 255, 255, 0.06);
+  --rex-accent-bg: rgba(196, 181, 253, 0.12);
+  --rex-accent-bg-strong: rgba(196, 181, 253, 0.2);
+  --rex-divider: rgba(255, 255, 255, 0.08);
+  --rex-shadow-color: rgba(0, 0, 0, 0.5);
+  --rex-radius-sm: 8px;
+  --rex-radius-md: 12px;
+  --rex-radius-lg: 16px;
+  --rex-radius-full: 9999px;
+  --rex-motion: 300ms cubic-bezier(0.2, 0, 0, 1);
+  --rex-spring: 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  color-scheme: dark;
+}
+
+:root.rex-light {
+  --rex-bg: #f8fbff;
+  --rex-surface: #ffffff;
+  --rex-surface-container: #f3f7ff;
+  --rex-surface-container-high: #ecf2ff;
+  --rex-outline-variant: rgba(18, 46, 138, 0.12);
+  --rex-primary: #122e8a;
+  --rex-primary-rgb: 18, 46, 138;
+  --rex-primary-container: #dfe7ff;
+  --rex-on-primary-container: #122e8a;
+  --rex-secondary: #294ebd;
+  --rex-tertiary: #173894;
+  --rex-error: #b83a32;
+  --rex-on-surface: #000000;
+  --rex-on-surface-variant: rgba(0, 0, 0, 0.65);
+  --rex-hover-overlay: rgba(18, 46, 138, 0.06);
+  --rex-accent-bg: rgba(18, 46, 138, 0.08);
+  --rex-accent-bg-strong: rgba(18, 46, 138, 0.14);
+  --rex-divider: rgba(18, 46, 138, 0.1);
+  --rex-shadow-color: rgba(18, 46, 138, 0.12);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--rex-bg);
+  color: var(--rex-on-surface);
+  font-family: var(--rex-font);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--rex-motion), color var(--rex-motion);
+}
+
+.rex-mono { font-family: var(--rex-mono); }
+.rex-muted { color: var(--rex-on-surface-variant); }
+.rex-title { font-size: 22px; font-weight: 500; letter-spacing: 0; }
+
+/* 卡片 */
+.rex-card {
+  background: var(--rex-surface-container);
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: var(--rex-radius-lg);
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px var(--rex-shadow-color);
+  transition: all var(--rex-motion);
+}
+
+/* 按钮 */
+.rex-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: var(--rex-radius-full);
+  background: var(--rex-primary);
+  color: var(--rex-bg);
+  font-family: var(--rex-font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, background var(--rex-motion), box-shadow var(--rex-motion);
+}
+.rex-btn:hover { box-shadow: 0 4px 14px rgba(var(--rex-primary-rgb), 0.4); }
+.rex-btn:active { transform: scale(0.95); }
+.rex-btn--tonal {
+  background: var(--rex-accent-bg-strong);
+  color: var(--rex-primary);
+}
+.rex-btn--text {
+  background: transparent;
+  color: var(--rex-primary);
+}
+.rex-btn--text:hover { background: var(--rex-hover-overlay); box-shadow: none; }
+.rex-btn--danger { background: var(--rex-error); color: var(--rex-bg); }
+
+/* chip / pill */
+.rex-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--rex-radius-full);
+  border: 1px solid var(--rex-outline-variant);
+  background: transparent;
+  color: var(--rex-on-surface-variant);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--rex-motion);
+}
+.rex-chip:hover { background: var(--rex-hover-overlay); transform: translateY(-1px); }
+.rex-chip.active {
+  background: var(--rex-accent-bg-strong);
+  color: var(--rex-primary);
+  border-color: transparent;
+}
+
+/* 输入 */
+.rex-input,
+.rex-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: var(--rex-radius-md);
+  background: var(--rex-surface-container);
+  color: var(--rex-on-surface);
+  font-family: var(--rex-font);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--rex-motion), box-shadow var(--rex-motion);
+}
+.rex-textarea { font-family: var(--rex-mono); resize: vertical; }
+.rex-input:focus,
+.rex-textarea:focus {
+  border-color: var(--rex-primary);
+  box-shadow: 0 0 0 2px rgba(var(--rex-primary-rgb), 0.18);
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(var(--rex-primary-rgb), 0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(var(--rex-primary-rgb), 0.5); }
