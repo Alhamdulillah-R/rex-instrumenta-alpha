@@ -34,6 +34,86 @@
       </div>
     </div>
 
+    <!-- 文档历史条: 当前文档名 + 历史下拉(切换/改名/删除) + 新建 -->
+    <div class="rex-parse__docbar">
+      <v-menu v-model="docMenu" :close-on-content-click="false" location="bottom start" offset="6">
+        <template #activator="{ props: menuProps }">
+          <button class="rex-parse__docchip" v-bind="menuProps" title="历史文档 — 点击切换 / 管理">
+            <v-icon size="15">mdi-history</v-icon>
+            <span class="rex-parse__docname">{{ activeName }}</span>
+            <v-icon size="14">mdi-chevron-down</v-icon>
+          </button>
+        </template>
+        <div class="rex-doclist">
+          <div class="rex-doclist__head">
+            <span v-if="!selectMode">历史文档 · {{ libDocs.length }} 篇</span>
+            <span v-else>已选 {{ selectedIds.length }} / {{ libDocs.length }}</span>
+            <span class="rex-doclist__headacts">
+              <template v-if="!selectMode">
+                <button class="rex-doclist__headbtn" :disabled="!libDocs.length" @click="enterSelect">选择</button>
+                <button
+                  class="rex-doclist__headbtn rex-doclist__headbtn--danger"
+                  :disabled="!unpinnedCount"
+                  title="删除所有未固定的历史"
+                  @click="clearUnpinned"
+                >清空</button>
+              </template>
+              <template v-else>
+                <button class="rex-doclist__headbtn" @click="toggleSelectAll">{{ allSelected ? '取消全选' : '全选' }}</button>
+                <button
+                  class="rex-doclist__headbtn rex-doclist__headbtn--danger"
+                  :disabled="!selectedIds.length"
+                  @click="deleteSelected"
+                >删除所选</button>
+                <button class="rex-doclist__headbtn" @click="exitSelect">取消</button>
+              </template>
+            </span>
+          </div>
+          <div class="rex-doclist__items">
+            <div
+              v-for="d in libDocs"
+              :key="d.id"
+              class="rex-doclist__item"
+              :class="{ active: !selectMode && d.id === activeId, selected: selectMode && selectedIds.includes(d.id) }"
+              @click="onRowClick(d)"
+            >
+              <span v-if="selectMode" class="rex-doclist__check">
+                <v-icon size="18">{{ selectedIds.includes(d.id) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline' }}</v-icon>
+              </span>
+              <div class="rex-doclist__main">
+                <span class="rex-doclist__name">
+                  <v-icon v-if="d.pinned" class="rex-doclist__pinmark" size="12">mdi-pin</v-icon>{{ d.name }}
+                </span>
+                <span class="rex-doclist__preview">{{ d.preview || '空文档' }}</span>
+              </div>
+              <span class="rex-doclist__time">{{ relTime(d.updatedAt) }}</span>
+              <template v-if="!selectMode">
+                <span
+                  class="rex-doclist__act"
+                  :class="{ 'rex-doclist__act--on': d.pinned }"
+                  :title="d.pinned ? '取消固定' : '固定置顶'"
+                  @click.stop="togglePin(d)"
+                >
+                  <v-icon size="14">{{ d.pinned ? 'mdi-pin' : 'mdi-pin-outline' }}</v-icon>
+                </span>
+                <span class="rex-doclist__act" title="改名" @click.stop="openDocRename(d)">
+                  <v-icon size="14">mdi-pencil-outline</v-icon>
+                </span>
+                <span class="rex-doclist__act rex-doclist__act--del" title="删除" @click.stop="deleteDoc(d.id)">
+                  <v-icon size="14">mdi-trash-can-outline</v-icon>
+                </span>
+              </template>
+            </div>
+            <div v-if="!libDocs.length" class="rex-doclist__empty">还没有历史文档</div>
+          </div>
+        </div>
+      </v-menu>
+      <button class="rex-parse__docrename" title="给当前文档改名" @click="openDocRename()">
+        <v-icon size="14">mdi-pencil-outline</v-icon>
+      </button>
+      <v-btn size="small" variant="text" prepend-icon="mdi-file-plus-outline" @click="newDoc">新建</v-btn>
+    </div>
+
     <!-- 已存搜索 tag -->
     <div v-if="savedSearches.saved.value.length" class="rex-saved">
       <span class="rex-saved__label">已存</span>
@@ -128,6 +208,38 @@
         </div>
       </v-card>
     </v-dialog>
+
+    <!-- 文档改名 — 留空则按时间自动命名 -->
+    <v-dialog v-model="docRename.show" max-width="420">
+      <v-card class="rex-rename-card">
+        <div class="rex-rename-card__title">给这份 JSON 改个名</div>
+        <div class="rex-rename-card__q">{{ docRename.preview || '空文档' }}</div>
+        <v-text-field
+          v-model="docRename.name"
+          variant="outlined"
+          density="compact"
+          placeholder="留空则按 yyyy-mm-dd-HH:mm导入的json 命名"
+          autofocus
+          hide-details
+          @keydown.enter="confirmDocRename"
+        />
+        <div class="rex-rename-card__actions">
+          <v-btn variant="text" size="small" @click="docRename.show = false">取消</v-btn>
+          <v-btn color="primary" variant="flat" size="small" @click="confirmDocRename">保存</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <!-- 批量清理确认 -->
+    <v-dialog v-model="confirmState.show" max-width="380">
+      <v-card class="rex-rename-card">
+        <div class="rex-rename-card__title">{{ confirmState.text }}</div>
+        <div class="rex-rename-card__actions">
+          <v-btn variant="text" size="small" @click="confirmState.show = false">取消</v-btn>
+          <v-btn color="error" variant="flat" size="small" @click="runConfirm">删除</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -140,6 +252,8 @@ import NodeContextMenu, { type ContextMenuItem } from './NodeContextMenu.vue'
 import CopyToast from './CopyToast.vue'
 import { useJsonDocument, type SearchMode } from '../composables/useJsonDocument'
 import { useSavedSearches, type SavedSearch } from '../composables/useSavedSearches'
+import { useJsonLibrary } from '../composables/useJsonLibrary'
+import type { JsonDoc } from '../store/docStore'
 import { pathOf } from '../core/model'
 import { countStructural, structuralPattern } from '../core/pathSearch'
 import { jsonToPython } from '../core/pythonParse'
@@ -150,6 +264,19 @@ defineProps<{ isDark: boolean }>()
 
 const doc = useJsonDocument()
 const savedSearches = useSavedSearches()
+const {
+  docs: libDocs,
+  activeId,
+  activeDoc,
+  init: initLibrary,
+  load: loadLibDoc,
+  save: saveActive,
+  create: createDoc,
+  rename: renameLibDoc,
+  remove: removeLibDoc,
+  setPin,
+  removeMany,
+} = useJsonLibrary()
 const treeRef = ref<InstanceType<typeof JsonTreeCanvas> | null>(null)
 
 const rawText = ref('')
@@ -159,10 +286,35 @@ const toast = ref({ show: false, text: '', error: false })
 let toastTimer: number | undefined
 const ctx = ref({ visible: false, x: 0, y: 0, nodeId: -1 })
 
+const docMenu = ref(false)
+const docRename = ref({ show: false, id: '', name: '', preview: '' })
+const activeName = computed(() => activeDoc.value?.name ?? '未命名')
+let saveTimer: number | undefined
+
 let parseTimer: number | undefined
 function onInput() {
   window.clearTimeout(parseTimer)
   parseTimer = window.setTimeout(() => doc.parse(rawText.value), 220)
+  scheduleSave()
+}
+
+// 自动保存当前文档(防抖) — 编辑/格式化/粘贴后落库, 切换工具或关闭窗口也不丢
+function scheduleSave() {
+  window.clearTimeout(saveTimer)
+  saveTimer = window.setTimeout(() => saveActive(rawText.value), 600)
+}
+
+function saveNow() {
+  window.clearTimeout(saveTimer)
+  saveActive(rawText.value)
+}
+
+// applyLoaded 把一段正文载入编辑器(不触发自动保存 —— 这是"载入"而非"编辑")
+function applyLoaded(text: string) {
+  rawText.value = text
+  selectedId.value = -1
+  doc.parse(text)
+  inputCollapsed.value = !!text && !doc.parseError.value
 }
 
 const errorText = computed(() => {
@@ -230,6 +382,130 @@ function openRename(i: number) {
 function confirmRename() {
   savedSearches.rename(renameDlg.value.index, renameDlg.value.label)
   renameDlg.value.show = false
+}
+
+// ─── 文档历史 ───
+function fileBaseName(path: string): string {
+  const base = path.split(/[\\/]/).pop()
+  return base && base.trim() ? base : ''
+}
+
+// relTime 把时间戳渲染成相对时间(刚刚/分钟/小时), 超过一天回落到月-日 时:分
+function relTime(ms: number): string {
+  const min = Math.floor((Date.now() - ms) / 60000)
+  if (min < 1) return '刚刚'
+  if (min < 60) return `${min} 分钟前`
+  const h = Math.floor(min / 60)
+  if (h < 24) return `${h} 小时前`
+  const d = new Date(ms)
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
+async function selectDoc(id: string) {
+  docMenu.value = false
+  if (id === activeId.value) return
+  applyLoaded(await loadLibDoc(id))
+}
+
+async function newDoc() {
+  docMenu.value = false
+  await createDoc('', '')
+  applyLoaded('')
+}
+
+async function deleteDoc(id: string) {
+  const next = await removeLibDoc(id)
+  if (next !== null) applyLoaded(next)
+}
+
+function openDocRename(d?: { id: string; name: string; preview: string }) {
+  const target = d ?? activeDoc.value
+  if (!target) return
+  docRename.value = { show: true, id: target.id, name: target.name, preview: target.preview }
+}
+
+async function confirmDocRename() {
+  await renameLibDoc(docRename.value.id, docRename.value.name.trim())
+  docRename.value.show = false
+}
+
+// ─── 固定 / 多选 / 清空 ───
+const selectMode = ref(false)
+const selectedIds = ref<string[]>([])
+const confirmState = ref({ show: false, text: '' })
+let confirmAction: (() => void | Promise<void>) | null = null
+
+const unpinnedCount = computed(() => libDocs.value.filter((d) => !d.pinned).length)
+const allSelected = computed(
+  () => libDocs.value.length > 0 && selectedIds.value.length === libDocs.value.length,
+)
+
+// 关掉历史下拉时顺手退出多选, 免得下次打开还停在选择态
+watch(docMenu, (open) => {
+  if (!open) exitSelect()
+})
+
+function onRowClick(d: JsonDoc) {
+  if (selectMode.value) toggleSelect(d.id)
+  else selectDoc(d.id)
+}
+
+function toggleSelect(id: string) {
+  const i = selectedIds.value.indexOf(id)
+  if (i >= 0) selectedIds.value.splice(i, 1)
+  else selectedIds.value.push(id)
+}
+
+// toggleSelectAll 全选 / 取消全选(全选含固定项 — 显式全选不拦)
+function toggleSelectAll() {
+  selectedIds.value = allSelected.value ? [] : libDocs.value.map((d) => d.id)
+}
+
+function enterSelect() {
+  selectMode.value = true
+  selectedIds.value = []
+}
+
+function exitSelect() {
+  selectMode.value = false
+  selectedIds.value = []
+}
+
+async function togglePin(d: JsonDoc) {
+  await setPin(d.id, !d.pinned)
+}
+
+function askConfirm(text: string, action: () => void | Promise<void>) {
+  confirmState.value = { show: true, text }
+  confirmAction = action
+}
+
+async function runConfirm() {
+  const action = confirmAction
+  confirmState.value.show = false
+  confirmAction = null
+  if (action) await action()
+}
+
+// clearUnpinned 清空全部未固定的历史(固定的保留)
+function clearUnpinned() {
+  const ids = libDocs.value.filter((d) => !d.pinned).map((d) => d.id)
+  if (!ids.length) return
+  askConfirm(`清空 ${ids.length} 篇未固定的历史?固定的会保留。`, async () => {
+    const next = await removeMany(ids)
+    if (next !== null) applyLoaded(next)
+  })
+}
+
+function deleteSelected() {
+  const ids = [...selectedIds.value]
+  if (!ids.length) return
+  askConfirm(`删除所选 ${ids.length} 篇?`, async () => {
+    const next = await removeMany(ids)
+    if (next !== null) applyLoaded(next)
+    exitSelect()
+  })
 }
 
 function onSelect(nodeId: number) {
@@ -328,7 +604,9 @@ function showToast(text: string, error = false) {
 async function openFile() {
   const file = await openTextFile()
   if (!file) return
-  loadContent(file.content)
+  // 打开文件 = 一次导入: 新建一篇以文件名命名的历史文档
+  applyLoaded(file.content)
+  await createDoc(fileBaseName(file.path), file.content)
 }
 
 // 在树区域直接粘贴 — 不在 textarea 里时, 全局 paste 当作加载 JSON, 并收起输入栏
@@ -341,10 +619,10 @@ function onWindowPaste(e: ClipboardEvent) {
   loadContent(text)
 }
 
+// 粘贴 = 替换当前文档内容(算作编辑), 自动存进活动文档
 function loadContent(text: string) {
-  rawText.value = text
-  doc.parse(text)
-  if (!doc.parseError.value) inputCollapsed.value = true
+  applyLoaded(text)
+  scheduleSave()
 }
 
 function format() {
@@ -352,6 +630,7 @@ function format() {
   if (!tree) return
   rawText.value = JSON.stringify(tree.values[0], null, 2)
   doc.parse(rawText.value)
+  scheduleSave()
 }
 
 function minify() {
@@ -359,15 +638,22 @@ function minify() {
   if (!tree) return
   rawText.value = JSON.stringify(tree.values[0])
   doc.parse(rawText.value)
+  scheduleSave()
 }
 
-onMounted(() => {
-  rawText.value = SAMPLE_JSON
-  doc.parse(SAMPLE_JSON)
+onMounted(async () => {
+  // 恢复上次正在看的文档(库为空时用样例 seed), 取代以往每次挂载强塞 SAMPLE
+  const content = await initLibrary(SAMPLE_JSON)
+  rawText.value = content
+  doc.parse(content)
   window.addEventListener('paste', onWindowPaste)
+  window.addEventListener('beforeunload', saveNow)
 })
 
 onBeforeUnmount(() => {
+  // 切走前把未落的最后一次编辑 flush 掉
+  saveNow()
   window.removeEventListener('paste', onWindowPaste)
+  window.removeEventListener('beforeunload', saveNow)
 })
 </script>

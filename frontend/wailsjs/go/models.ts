@@ -19,6 +19,137 @@ export namespace app {
 
 }
 
+export namespace jsonstore {
+	
+	export class Doc {
+	    id: string;
+	    name: string;
+	    createdAt: number;
+	    updatedAt: number;
+	    size: number;
+	    preview: string;
+	    pinned: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new Doc(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.createdAt = source["createdAt"];
+	        this.updatedAt = source["updatedAt"];
+	        this.size = source["size"];
+	        this.preview = source["preview"];
+	        this.pinned = source["pinned"];
+	    }
+	}
+	export class Payload {
+	    doc: Doc;
+	    content: string;
+	    found: boolean;
+	    error?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Payload(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.doc = this.convertValues(source["doc"], Doc);
+	        this.content = source["content"];
+	        this.found = source["found"];
+	        this.error = source["error"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class Result {
+	    docs: Doc[];
+	    error?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Result(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.docs = this.convertValues(source["docs"], Doc);
+	        this.error = source["error"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+	export class SaveResult {
+	    docs: Doc[];
+	    id: string;
+	    error?: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new SaveResult(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.docs = this.convertValues(source["docs"], Doc);
+	        this.id = source["id"];
+	        this.error = source["error"];
+	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
+	}
+
+}
+
 export namespace jsontool {
 	
 	export class DiffStats {

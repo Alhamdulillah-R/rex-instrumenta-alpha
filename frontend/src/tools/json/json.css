@@ -545,6 +545,210 @@
   background: var(--rex-danger-bg, rgba(252, 165, 165, 0.16));
 }
 
+/* ─── 文档历史条 ─── */
+.rex-parse__docbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -2px 0 10px;
+  flex-shrink: 0;
+}
+.rex-parse__docchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 12px;
+  border-radius: var(--rex-radius-full);
+  border: 1px solid var(--rex-outline-variant);
+  background: var(--rex-surface-container);
+  color: var(--rex-on-surface);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  max-width: 360px;
+}
+.rex-parse__docchip:hover {
+  background: var(--rex-accent-bg);
+  border-color: var(--rex-accent-border);
+  color: var(--rex-primary);
+}
+.rex-parse__docname {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.rex-parse__docrename {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--rex-outline-variant);
+  background: transparent;
+  color: var(--rex-on-surface-variant);
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+.rex-parse__docrename:hover {
+  color: var(--rex-primary);
+  background: var(--rex-accent-bg);
+  border-color: var(--rex-accent-border);
+}
+
+/* 历史文档下拉 */
+.rex-doclist {
+  width: 380px;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--rex-surface-container-high, var(--rex-surface));
+  border: 1px solid var(--rex-outline-variant);
+  border-radius: var(--rex-radius-md);
+  box-shadow: 0 12px 32px var(--rex-shadow-color);
+  overflow: hidden;
+}
+.rex-doclist__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px 8px 14px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--rex-on-surface-variant);
+  border-bottom: 1px solid var(--rex-outline-variant);
+}
+.rex-doclist__headacts {
+  display: inline-flex;
+  gap: 4px;
+}
+.rex-doclist__headbtn {
+  padding: 3px 10px;
+  border-radius: var(--rex-radius-full);
+  border: 1px solid var(--rex-outline-variant);
+  background: transparent;
+  color: var(--rex-on-surface-variant);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+.rex-doclist__headbtn:hover:not(:disabled) {
+  background: var(--rex-accent-bg);
+  color: var(--rex-primary);
+  border-color: var(--rex-accent-border);
+}
+.rex-doclist__headbtn--danger:hover:not(:disabled) {
+  background: var(--rex-danger-bg, rgba(252, 165, 165, 0.16));
+  color: var(--rex-error);
+  border-color: var(--rex-error);
+}
+.rex-doclist__headbtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.rex-doclist__check {
+  display: inline-flex;
+  align-items: center;
+  color: var(--rex-primary);
+  flex-shrink: 0;
+}
+.rex-doclist__pinmark {
+  color: var(--rex-primary);
+  margin-right: 4px;
+  vertical-align: -1px;
+}
+.rex-doclist__item.selected {
+  background: var(--rex-accent-bg);
+}
+.rex-doclist__items {
+  overflow-y: auto;
+  padding: 4px;
+}
+.rex-doclist__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--rex-radius-sm);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.rex-doclist__item:hover {
+  background: var(--rex-hover-overlay);
+}
+.rex-doclist__item.active {
+  background: var(--rex-accent-bg);
+}
+.rex-doclist__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rex-doclist__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rex-on-surface);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rex-doclist__item.active .rex-doclist__name {
+  color: var(--rex-primary);
+}
+.rex-doclist__preview {
+  font-family: var(--rex-mono);
+  font-size: 11px;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rex-doclist__time {
+  font-size: 10.5px;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.7;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.rex-doclist__act {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.55;
+  flex-shrink: 0;
+  transition: all 140ms ease;
+}
+.rex-doclist__act:hover {
+  opacity: 1;
+  color: var(--rex-primary);
+  background: var(--rex-accent-bg);
+}
+.rex-doclist__act--del:hover {
+  color: var(--rex-error);
+  background: var(--rex-danger-bg, rgba(252, 165, 165, 0.16));
+}
+.rex-doclist__act--on {
+  opacity: 1;
+  color: var(--rex-primary);
+}
+.rex-doclist__empty {
+  padding: 22px 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.7;
+}
+
 /* 改名卡片 */
 .rex-rename-card {
   padding: 18px 18px 14px;

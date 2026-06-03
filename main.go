@@ -6,6 +6,7 @@ import (
 
 	"rex-instrumenta-alpha/internal/app"
 	"rex-instrumenta-alpha/internal/platform"
+	"rex-instrumenta-alpha/internal/tools/jsonstore"
 	"rex-instrumenta-alpha/internal/tools/jsontool"
 	"rex-instrumenta-alpha/internal/tools/plugintool"
 	"rex-instrumenta-alpha/internal/tray"
@@ -32,6 +33,7 @@ func main() {
 	application := app.New(appName, appVersion)
 	platformSvc := platform.New()
 	jsonSvc := jsontool.New()
+	jsonStoreSvc := jsonstore.New()
 	pluginSvc := plugintool.New()
 
 	err := wails.Run(&options.App{
@@ -52,6 +54,7 @@ func main() {
 		OnStartup: func(ctx context.Context) {
 			application.Startup(ctx)
 			platformSvc.Startup(ctx)
+			jsonStoreSvc.Startup(ctx)
 			pluginSvc.Startup(ctx)
 			tray.Start(ctx, trayIcon, appName, application.RequestQuit)
 		},
@@ -72,6 +75,7 @@ func main() {
 			application,
 			platformSvc,
 			jsonSvc,
+			jsonStoreSvc,
 			pluginSvc,
 		},
 	})
