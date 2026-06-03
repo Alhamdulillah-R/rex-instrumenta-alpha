@@ -1,5 +1,6 @@
 import type { ToolDef } from './tool'
 import { JSON_TOOL } from '@/tools/json'
+import { CURL_TOOL } from '@/tools/curl'
 import { PLUGINS_TOOL } from '@/tools/plugins'
 
 /**
@@ -8,5 +9,6 @@ import { PLUGINS_TOOL } from '@/tools/plugins'
  */
 export const TOOLS: ToolDef[] = [
   JSON_TOOL,
+  CURL_TOOL,
   PLUGINS_TOOL,
 ]

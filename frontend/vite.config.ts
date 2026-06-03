@@ -22,6 +22,10 @@ export default defineConfig({
     port: 5180,
     strictPort: true,
   },
+  optimizeDeps: {
+    // curlconverter/webParser 用顶层 await 加载 tree-sitter wasm; 依赖预构建(esbuild)需 esnext 才支持 TLA
+    esbuildOptions: { target: 'esnext' },
+  },
   build: {
     target: 'esnext',
     chunkSizeWarningLimit: 1500,

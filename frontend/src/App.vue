@@ -13,8 +13,11 @@
     <v-main class="rex-main">
       <TopBar :title="currentTitle" />
       <div class="rex-content">
+        <!-- keep-alive: 切换工具时各工具组件不销毁, 保留输入/输出/滚动等状态(curl 也不重载 wasm) -->
         <router-view v-slot="{ Component }">
-          <component :is="Component" :is-dark="isDark" />
+          <keep-alive>
+            <component :is="Component" :is-dark="isDark" />
+          </keep-alive>
         </router-view>
       </div>
     </v-main>
