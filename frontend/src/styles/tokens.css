@@ -60,14 +60,14 @@
   --rex-json-match-active: rgba(253,230,138,0.62);
   --rex-json-triangle: rgba(255,255,255,0.78);
 
-  /* canvas diff 配色 */
+  /* canvas diff 配色 — changed 蓝 / added 绿 / removed 红, 三色互不混淆 */
   --rex-diff-same: rgba(255,255,255,0.42);
-  --rex-diff-changed-bg: rgba(252,165,165,0.14);
-  --rex-diff-changed-fg: #fca5a5;
+  --rex-diff-changed-bg: rgba(147,197,253,0.16);
+  --rex-diff-changed-fg: #93c5fd;
   --rex-diff-added-bg: rgba(110,231,183,0.14);
   --rex-diff-added-fg: #6ee7b7;
-  --rex-diff-removed-bg: rgba(252,165,165,0.10);
-  --rex-diff-removed-fg: #fda4af;
+  --rex-diff-removed-bg: rgba(252,165,165,0.14);
+  --rex-diff-removed-fg: #fca5a5;
 
   --rex-radius-sm: 8px;
   --rex-radius-md: 12px;
@@ -136,13 +136,13 @@
   --rex-json-match-active: rgba(154,98,37,0.5);
   --rex-json-triangle: rgba(18,46,138,0.7);
 
-  /* canvas diff 配色 */
+  /* canvas diff 配色 — changed 蓝 / added 绿 / removed 红, 三色互不混淆 */
   --rex-diff-same: rgba(18,46,138,0.40);
-  --rex-diff-changed-bg: rgba(184,58,50,0.10);
-  --rex-diff-changed-fg: #B83A32;
+  --rex-diff-changed-bg: rgba(29,78,216,0.10);
+  --rex-diff-changed-fg: #1d4ed8;
   --rex-diff-added-bg: rgba(21,128,61,0.12);
   --rex-diff-added-fg: #15803d;
-  --rex-diff-removed-bg: rgba(184,58,50,0.08);
+  --rex-diff-removed-bg: rgba(184,58,50,0.12);
   --rex-diff-removed-fg: #b91c1c;
 
   --rex-radius-sm: 8px;

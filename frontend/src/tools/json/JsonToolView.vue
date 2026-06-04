@@ -1,5 +1,5 @@
 <template>
-  <div class="rex-json-tool rex-view-enter">
+  <div class="rex-json-tool rex-view-enter" :class="{ 'rex-json-tool--immersive': immersive }">
     <div class="rex-json-tool__tabs">
       <button class="rex-json-tab" :class="{ active: mode === 'parse' }" @click="mode = 'parse'">
         <v-icon size="16">mdi-file-tree</v-icon>
@@ -13,10 +13,10 @@
 
     <div class="rex-json-tool__body">
       <transition name="rex-fade">
-        <ParsePane v-show="mode === 'parse'" :is-dark="isDark" />
+        <ParsePane v-show="mode === 'parse'" :is-dark="isDark" :active="mode === 'parse'" />
       </transition>
       <transition name="rex-fade">
-        <CompareView v-show="mode === 'compare'" :is-dark="isDark" />
+        <CompareView v-show="mode === 'compare'" :is-dark="isDark" :active="mode === 'compare'" />
       </transition>
     </div>
   </div>
@@ -26,11 +26,13 @@
 import { ref, toRefs } from 'vue'
 import ParsePane from './components/ParsePane.vue'
 import CompareView from './components/CompareView.vue'
+import { useImmersive } from '@/composables/useImmersive'
 import './json.css'
 
 // isDark 由 App.vue 经 router-view 传入, 透传给 canvas 子组件触发 recolor
 const props = withDefaults(defineProps<{ isDark?: boolean }>(), { isDark: false })
 const { isDark } = toRefs(props)
+const { immersive } = useImmersive()
 
 const mode = ref<'parse' | 'compare'>('parse')
 </script>

@@ -10,6 +10,8 @@
     </div>
 
     <div class="rex-titlebar__right rex-nodrag">
+      <!-- 沉浸模式落点: ParsePane 的操作按钮 teleport 到这里, 与主题切换同一行 -->
+      <div id="rex-titlebar-actions" class="rex-titlebar__actions"></div>
       <button class="rex-titlebar__btn" :title="isDark ? '切换到浅色' : '切换到深色'" @click="onTheme">
         <v-icon size="17">{{ isDark ? 'mdi-weather-night' : 'mdi-white-balance-sunny' }}</v-icon>
       </button>

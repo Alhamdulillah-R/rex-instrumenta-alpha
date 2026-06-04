@@ -198,3 +198,76 @@
   opacity: 0;
   transform: translateX(-10px) scale(0.9);
 }
+
+/* ─── 沉浸模式(全屏看 JSON 树)─── */
+/* 工具标题收起 + 上移: 给可视化让出纵向空间 */
+.rex-topbar {
+  overflow: hidden;
+  transition: max-height var(--rex-motion-emphasized), opacity var(--rex-motion-standard),
+    padding var(--rex-motion-emphasized);
+  max-height: 64px;
+}
+.rex-immersive .rex-topbar {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  pointer-events: none;
+}
+/* 标题没了, 内容卡片上移并吃掉那段高度 */
+.rex-content {
+  transition: background var(--rex-motion-standard), border-color var(--rex-motion-standard),
+    height var(--rex-motion-emphasized), margin var(--rex-motion-emphasized);
+}
+.rex-immersive .rex-content {
+  height: calc(100vh - 72px);
+  margin: 0 12px 12px;
+}
+
+/* 标题栏 actions 落点: 沉浸时 ParsePane 把操作 teleport 进来, 与主题切换同一行 */
+.rex-titlebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  margin-right: 4px;
+}
+.rex-titlebar-actions__sep {
+  width: 1px;
+  height: 18px;
+  background: var(--rex-outline-variant);
+  margin: 0 5px;
+}
+/* 逐个飞入, 制造"操作汇入标题栏"的层次感(sep 是 span, 不匹配 .v-btn, 自动跳过) */
+.rex-titlebar-actions .v-btn {
+  color: var(--rex-on-surface-variant);
+  animation: rexTbActionIn 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.rex-titlebar-actions .v-btn:nth-child(1) { animation-delay: 30ms; }
+.rex-titlebar-actions .v-btn:nth-child(2) { animation-delay: 70ms; }
+.rex-titlebar-actions .v-btn:nth-child(3) { animation-delay: 110ms; }
+.rex-titlebar-actions .v-btn:nth-child(5) { animation-delay: 190ms; }
+.rex-titlebar-actions .v-btn:nth-child(6) { animation-delay: 230ms; }
+.rex-titlebar-actions .v-btn:nth-child(7) { animation-delay: 270ms; }
+.rex-titlebar-actions .v-btn:nth-child(8) { animation-delay: 310ms; }
+@keyframes rexTbActionIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.82); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 对比 chips teleport 到标题栏 — 紧凑适配 40px 标题栏, 同款 stagger 入场动画 */
+.rex-titlebar-chips {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 6px;
+}
+.rex-titlebar-chips .rex-cmp-chip {
+  padding: 3px 9px;
+  font-size: 11.5px;
+  animation: rexTbActionIn 380ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.rex-titlebar-chips .rex-cmp-chip:nth-child(1) { animation-delay: 30ms; }
+.rex-titlebar-chips .rex-cmp-chip:nth-child(2) { animation-delay: 80ms; }
+.rex-titlebar-chips .rex-cmp-chip:nth-child(3) { animation-delay: 130ms; }
+.rex-titlebar-chips .rex-cmp-chip:nth-child(4) { animation-delay: 180ms; }
+.rex-titlebar-chips .rex-cmp-chip:nth-child(5) { animation-delay: 230ms; }

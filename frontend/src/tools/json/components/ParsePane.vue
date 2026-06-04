@@ -1,20 +1,19 @@
 <template>
   <div class="rex-parse">
-    <!-- 工具条 -->
+    <!-- 工具条(非沉浸) -->
     <div class="rex-parse__toolbar">
       <v-btn
+        v-show="!immersive"
         size="small"
         variant="text"
-        :icon="inputCollapsed ? 'mdi-dock-left' : 'mdi-chevron-left'"
-        :title="inputCollapsed ? '展开输入' : '收起输入'"
-        @click="inputCollapsed = !inputCollapsed"
+        icon="mdi-chevron-left"
+        title="收起输入 · 进入沉浸 (Q / Ctrl+F)"
+        @click="toggleImmersive"
       />
       <JsonSearchBar
+        v-show="!immersive"
         v-model="doc.searchQuery.value"
-        :count="doc.matchCount.value"
-        :active-index="doc.activeMatch.value"
-        :case-sensitive="doc.searchOptions.value.caseSensitive"
-        :mode="doc.searchMode.value"
+        v-bind="searchBarProps"
         @update:case-sensitive="onCaseToggle"
         @update:mode="onModeToggle"
         @next="doc.nextMatch()"
@@ -22,17 +21,76 @@
         @rerun="doc.runSearch()"
         @save="onSaveSearch"
       />
-      <div class="rex-parse__actions">
-        <v-btn size="small" variant="tonal" prepend-icon="mdi-folder-open-outline" @click="openFile">打开</v-btn>
-        <v-btn size="small" variant="text" prepend-icon="mdi-code-braces" :disabled="!doc.tree.value" @click="format">格式化</v-btn>
-        <v-btn size="small" variant="text" prepend-icon="mdi-format-horizontal-align-center" :disabled="!doc.tree.value" @click="minify">压缩</v-btn>
-        <span class="rex-parse__sep" />
-        <v-btn size="small" variant="text" icon="mdi-unfold-more-horizontal" :disabled="!doc.tree.value" title="展开全部" @click="treeRef?.expandAll()" />
-        <v-btn size="small" variant="text" icon="mdi-unfold-less-horizontal" :disabled="!doc.tree.value" title="折叠全部" @click="treeRef?.collapseAll()" />
-        <v-btn size="small" variant="tonal" color="primary" prepend-icon="mdi-content-copy" :disabled="!doc.tree.value" @click="copyAll">复制全部</v-btn>
-        <v-btn size="small" variant="text" prepend-icon="mdi-language-python" :disabled="!doc.tree.value" title="复制全部为 Python dict" @click="copyAllPython">dict</v-btn>
+      <div class="rex-parse__actions" v-show="!immersive">
+        <template v-for="(a, i) in actionItems" :key="a.key ?? `sep-${i}`">
+          <span v-if="a.sep" class="rex-parse__sep" />
+          <!-- 带文字: prepend-icon + label; 纯图标: icon-only(分开写, 避免空 slot 覆盖 icon 致图标丢失) -->
+          <v-btn
+            v-else-if="a.label"
+            size="small"
+            :variant="a.variant"
+            :color="a.color"
+            :prepend-icon="a.icon"
+            :disabled="a.disabled"
+            :title="a.title"
+            @click="a.run"
+          >{{ a.label }}</v-btn>
+          <v-btn
+            v-else
+            size="small"
+            :variant="a.variant"
+            :color="a.color"
+            :icon="a.icon"
+            :disabled="a.disabled"
+            :title="a.title"
+            @click="a.run"
+          />
+        </template>
       </div>
+
+      <!-- 沉浸模式: 同一组操作以紧凑图标 teleport 到标题栏(与主题切换同一行).
+           active 守卫 — 切到对比 tab 时本 pane 仍 mounted, 但 actions 不应再串台 teleport -->
+      <Teleport to="#rex-titlebar-actions" :disabled="!immersive || !props.active">
+        <div v-if="immersive && props.active" class="rex-titlebar-actions">
+          <template v-for="(a, i) in actionItems" :key="a.key ?? `tsep-${i}`">
+            <span v-if="a.sep" class="rex-titlebar-actions__sep" />
+            <v-btn
+              v-else
+              size="small"
+              variant="text"
+              :icon="a.icon"
+              :color="a.color"
+              :disabled="a.disabled"
+              :title="a.title"
+              @click="a.run"
+            />
+          </template>
+        </div>
+      </Teleport>
     </div>
+
+    <!-- 沉浸浮层: 搜索框 + 退出按钮, 浮在树右上角, 进出带动画(避免 position 突变的生硬感) -->
+    <Transition name="rex-immfloat">
+      <div v-if="immersive" class="rex-parse__floatbar">
+        <JsonSearchBar
+          v-model="doc.searchQuery.value"
+          v-bind="searchBarProps"
+          @update:case-sensitive="onCaseToggle"
+          @update:mode="onModeToggle"
+          @next="doc.nextMatch()"
+          @prev="doc.prevMatch()"
+          @rerun="doc.runSearch()"
+          @save="onSaveSearch"
+        />
+        <v-btn
+          size="small"
+          variant="text"
+          icon="mdi-fullscreen-exit"
+          title="退出沉浸 (Q / Ctrl+F / Esc)"
+          @click="toggleImmersive"
+        />
+      </div>
+    </Transition>
 
     <!-- 文档历史条: 当前文档名 + 历史下拉(切换/改名/删除) + 新建 -->
     <div class="rex-parse__docbar">
@@ -137,9 +195,10 @@
 
     <!-- 输入 / 树 分屏 -->
     <div class="rex-parse__body">
-      <section class="rex-parse__input" :class="{ 'rex-parse__input--collapsed': inputCollapsed }">
+      <section class="rex-parse__input" :class="{ 'rex-parse__input--collapsed': immersive }">
         <textarea
-          v-model="rawText"
+          ref="textareaEl"
+          :value="rawText"
           class="rex-parse__textarea"
           spellcheck="false"
           placeholder="把 JSON 粘贴到这里 — 右侧实时解析。也可直接在右侧粘贴 (Ctrl+V) 并自动收起此栏"
@@ -158,6 +217,10 @@
           :is-dark="isDark"
           @select="onSelect"
           @contextmenu="onContextMenu"
+          @next="doc.nextMatch()"
+          @prev="doc.prevMatch()"
+          @toggle-immersive="toggleImmersive"
+          @copy-value="copySelectedValue"
         />
         <div v-if="selectedId >= 0 && doc.tree.value" class="rex-parse__selbar">
           <span class="rex-parse__selpath" :title="selectedPath">{{ selectedPath }}</span>
@@ -244,13 +307,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import JsonTreeCanvas from './JsonTreeCanvas.vue'
 import JsonSearchBar from './JsonSearchBar.vue'
 import JsonStatsBar from './JsonStatsBar.vue'
 import NodeContextMenu, { type ContextMenuItem } from './NodeContextMenu.vue'
 import CopyToast from './CopyToast.vue'
 import { useJsonDocument, type SearchMode } from '../composables/useJsonDocument'
+import { useImmersive } from '@/composables/useImmersive'
+import { dissolveText } from '../render/dissolve'
 import { useSavedSearches, type SavedSearch } from '../composables/useSavedSearches'
 import { useJsonLibrary } from '../composables/useJsonLibrary'
 import type { JsonDoc } from '../store/docStore'
@@ -260,7 +326,7 @@ import { jsonToPython } from '../core/pythonParse'
 import { copyText, openTextFile } from '@/platform/native'
 import { SAMPLE_JSON } from '../sample'
 
-defineProps<{ isDark: boolean }>()
+const props = withDefaults(defineProps<{ isDark: boolean; active?: boolean }>(), { active: true })
 
 const doc = useJsonDocument()
 const savedSearches = useSavedSearches()
@@ -278,10 +344,13 @@ const {
   removeMany,
 } = useJsonLibrary()
 const treeRef = ref<InstanceType<typeof JsonTreeCanvas> | null>(null)
+const textareaEl = ref<HTMLTextAreaElement | null>(null)
+
+const { immersive, toggle, exit } = useImmersive()
+const route = useRoute()
 
 const rawText = ref('')
 const selectedId = ref(-1)
-const inputCollapsed = ref(false)
 const toast = ref({ show: false, text: '', error: false })
 let toastTimer: number | undefined
 const ctx = ref({ visible: false, x: 0, y: 0, nodeId: -1 })
@@ -291,10 +360,68 @@ const docRename = ref({ show: false, id: '', name: '', preview: '' })
 const activeName = computed(() => activeDoc.value?.name ?? '未命名')
 let saveTimer: number | undefined
 
+// ─── 撤销 / 重做: 针对当前文档正文的内容变更(打字 / 格式化 / 压缩 / 粘贴)───
+const undoStack = ref<string[]>([])
+const redoStack = ref<string[]>([])
+const UNDO_LIMIT = 100
+let editing = false // 连续打字合并成一个撤销单元
+
+// pushUndo 在内容变更前记一次快照, 去重 + 限长, 并清空 redo
+function pushUndo(snapshot: string) {
+  if (undoStack.value[undoStack.value.length - 1] === snapshot) return
+  undoStack.value.push(snapshot)
+  if (undoStack.value.length > UNDO_LIMIT) undoStack.value.shift()
+  redoStack.value = []
+}
+
+// clearUndoHistory 换文档时重置 — 旧文档的撤销历史不适用新文档
+function clearUndoHistory() {
+  undoStack.value = []
+  redoStack.value = []
+  editing = false
+}
+
+function undo() {
+  if (!undoStack.value.length) {
+    showToast('没有可撤销的了', true)
+    return
+  }
+  redoStack.value.push(rawText.value)
+  rawText.value = undoStack.value.pop()!
+  selectedId.value = -1
+  doc.parse(rawText.value)
+  editing = false
+  scheduleSave()
+  showToast('已撤销')
+}
+
+function redo() {
+  if (!redoStack.value.length) {
+    showToast('没有可重做的了', true)
+    return
+  }
+  undoStack.value.push(rawText.value)
+  rawText.value = redoStack.value.pop()!
+  selectedId.value = -1
+  doc.parse(rawText.value)
+  editing = false
+  scheduleSave()
+  showToast('已重做')
+}
+
 let parseTimer: number | undefined
-function onInput() {
+function onInput(e: Event) {
+  // 编辑组开始时记一次基线(编辑前内容), 连续打字合并为一个撤销单元
+  if (!editing) {
+    pushUndo(rawText.value)
+    editing = true
+  }
+  rawText.value = (e.target as HTMLTextAreaElement).value
   window.clearTimeout(parseTimer)
-  parseTimer = window.setTimeout(() => doc.parse(rawText.value), 220)
+  parseTimer = window.setTimeout(() => {
+    doc.parse(rawText.value)
+    editing = false
+  }, 220)
   scheduleSave()
 }
 
@@ -314,7 +441,7 @@ function applyLoaded(text: string) {
   rawText.value = text
   selectedId.value = -1
   doc.parse(text)
-  inputCollapsed.value = !!text && !doc.parseError.value
+  clearUndoHistory() // 换文档 = 撤销历史重置(粘贴走 loadContent, 不经这里)
 }
 
 const errorText = computed(() => {
@@ -352,6 +479,10 @@ watch(
   () => doc.searchQuery.value,
   () => doc.runSearch(),
 )
+// 解析出新树后(粘贴/载入/编辑), 若搜索框已有内容则自动在新树上重搜 — 不用再点搜索框
+watch(doc.tree, () => {
+  if (doc.searchQuery.value) doc.runSearch()
+})
 
 function onCaseToggle(v: boolean) {
   doc.searchOptions.value.caseSensitive = v
@@ -508,6 +639,95 @@ function deleteSelected() {
   })
 }
 
+// ─── 沉浸模式 ───
+interface ActionItem {
+  key?: string
+  sep?: boolean
+  icon?: string
+  label?: string
+  title?: string
+  variant?: 'text' | 'tonal' | 'flat'
+  color?: string
+  disabled?: boolean
+  run?: () => void
+}
+
+// 工具操作: 一处定义两处渲染 — 非沉浸在工具条(带文字), 沉浸时紧凑图标 teleport 到标题栏
+const actionItems = computed<ActionItem[]>(() => {
+  const noTree = !doc.tree.value
+  return [
+    { key: 'open', icon: 'mdi-folder-open-outline', label: '打开', title: '打开文件', variant: 'tonal', disabled: false, run: openFile },
+    { key: 'format', icon: 'mdi-code-braces', label: '格式化', title: '格式化', variant: 'text', disabled: noTree, run: format },
+    { key: 'minify', icon: 'mdi-format-horizontal-align-center', label: '压缩', title: '压缩', variant: 'text', disabled: noTree, run: minify },
+    { sep: true },
+    { key: 'expand', icon: 'mdi-unfold-more-horizontal', title: '展开全部', variant: 'text', disabled: noTree, run: () => treeRef.value?.expandAll() },
+    { key: 'collapse', icon: 'mdi-unfold-less-horizontal', title: '折叠全部', variant: 'text', disabled: noTree, run: () => treeRef.value?.collapseAll() },
+    { key: 'copyAll', icon: 'mdi-content-copy', label: '复制全部', title: '复制全部 JSON', variant: 'tonal', color: 'primary', disabled: noTree, run: copyAll },
+    { key: 'dict', icon: 'mdi-language-python', label: 'dict', title: '复制全部为 Python dict', variant: 'text', disabled: noTree, run: copyAllPython },
+  ]
+})
+
+// 搜索框 props — 工具条与沉浸浮层两处复用同一份, 避免漏改
+const searchBarProps = computed(() => ({
+  count: doc.matchCount.value,
+  activeIndex: doc.activeMatch.value,
+  caseSensitive: doc.searchOptions.value.caseSensitive,
+  mode: doc.searchMode.value,
+}))
+
+// toggleImmersive 切换沉浸; 进入后把焦点交给 canvas, 便于继续按 Q / 方向键
+function toggleImmersive() {
+  // 进入沉浸: 左侧输入文字"碎成光点"飘散 — 趁 collapse 把它压扁前, 用展开态 rect 捕获文字
+  if (!immersive.value && textareaEl.value && rawText.value.trim()) {
+    const el = textareaEl.value
+    const rect = el.getBoundingClientRect()
+    if (rect.width > 4 && rect.height > 4) {
+      const cs = getComputedStyle(el)
+      dissolveText(rect, rawText.value, {
+        font: cs.font || `${cs.fontSize} ${cs.fontFamily}`,
+        color: cs.color,
+        lineHeight: parseFloat(cs.lineHeight) || 20,
+        padX: parseFloat(cs.paddingLeft) || 16,
+        padY: parseFloat(cs.paddingTop) || 14,
+        glow: props.isDark,
+      })
+    }
+  }
+  toggle()
+  if (immersive.value) nextTick(() => treeRef.value?.focus())
+}
+
+// copySelectedValue 复制选中节点 value(格式化) — Ctrl+C(canvas 聚焦时)触发
+function copySelectedValue() {
+  if (selectedId.value >= 0) copyNode(selectedId.value, true)
+}
+
+// onWindowKeydown: Ctrl+F 在 JSON 工具内切换沉浸(拦掉浏览器查找), Esc 退出沉浸
+function onWindowKeydown(e: KeyboardEvent) {
+  if (route.name !== 'json') return
+  if (e.ctrlKey && (e.key === 'f' || e.key === 'F')) {
+    e.preventDefault()
+    toggleImmersive()
+    return
+  }
+  // Ctrl+Z 撤销, Ctrl+Shift+Z / Ctrl+Y 重做 — 防误触格式化 / 压缩 / 粘贴 / 编辑
+  if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
+    e.preventDefault()
+    if (e.shiftKey) redo()
+    else undo()
+    return
+  }
+  if (e.ctrlKey && (e.key === 'y' || e.key === 'Y')) {
+    e.preventDefault()
+    redo()
+    return
+  }
+  if (e.key === 'Escape' && immersive.value) {
+    e.preventDefault()
+    exit()
+  }
+}
+
 function onSelect(nodeId: number) {
   selectedId.value = nodeId
 }
@@ -619,15 +839,19 @@ function onWindowPaste(e: ClipboardEvent) {
   loadContent(text)
 }
 
-// 粘贴 = 替换当前文档内容(算作编辑), 自动存进活动文档
+// 粘贴 = 替换当前文档内容(算作编辑, 可撤销), 自动存进活动文档
 function loadContent(text: string) {
-  applyLoaded(text)
+  pushUndo(rawText.value)
+  rawText.value = text
+  selectedId.value = -1
+  doc.parse(text)
   scheduleSave()
 }
 
 function format() {
   const tree = doc.tree.value
   if (!tree) return
+  pushUndo(rawText.value)
   rawText.value = JSON.stringify(tree.values[0], null, 2)
   doc.parse(rawText.value)
   scheduleSave()
@@ -636,6 +860,7 @@ function format() {
 function minify() {
   const tree = doc.tree.value
   if (!tree) return
+  pushUndo(rawText.value)
   rawText.value = JSON.stringify(tree.values[0])
   doc.parse(rawText.value)
   scheduleSave()
@@ -647,6 +872,7 @@ onMounted(async () => {
   rawText.value = content
   doc.parse(content)
   window.addEventListener('paste', onWindowPaste)
+  window.addEventListener('keydown', onWindowKeydown)
   window.addEventListener('beforeunload', saveNow)
 })
 
@@ -654,6 +880,7 @@ onBeforeUnmount(() => {
   // 切走前把未落的最后一次编辑 flush 掉
   saveNow()
   window.removeEventListener('paste', onWindowPaste)
+  window.removeEventListener('keydown', onWindowKeydown)
   window.removeEventListener('beforeunload', saveNow)
 })
 </script>

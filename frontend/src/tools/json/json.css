@@ -413,6 +413,12 @@
   flex-wrap: wrap;
   flex-shrink: 0;
 }
+.rex-compare__bar-swap {
+  margin-left: auto;
+}
+.rex-compare__spin {
+  opacity: 0.7;
+}
 .rex-compare__error {
   display: flex;
   align-items: center;
@@ -851,4 +857,349 @@
 .rex-fade-enter-from {
   opacity: 0;
   transform: translateY(8px);
+}
+
+/* ═══ 沉浸模式(全屏看 JSON 树)═══ */
+/* 解析面板作为浮层定位上下文 */
+.rex-parse {
+  position: relative;
+}
+
+/* 解析 / 对比 tab 收起 */
+.rex-json-tool__tabs {
+  overflow: hidden;
+  transition: max-height var(--rex-motion-emphasized), opacity var(--rex-motion-standard),
+    padding var(--rex-motion-emphasized);
+  max-height: 60px;
+}
+.rex-json-tool--immersive .rex-json-tool__tabs {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  pointer-events: none;
+}
+
+/* 文档历史条 / 统计条 收起 */
+.rex-parse__docbar,
+.rex-stats-bar {
+  overflow: hidden;
+  transition: max-height var(--rex-motion-emphasized), opacity var(--rex-motion-standard),
+    margin var(--rex-motion-emphasized);
+  max-height: 48px;
+}
+.rex-json-tool--immersive .rex-parse__docbar,
+.rex-json-tool--immersive .rex-stats-bar {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* 沉浸时工具条整条收起 — 搜索框/退出按钮改由 .rex-parse__floatbar 浮层承载,
+   actions 已 teleport 到标题栏 */
+.rex-json-tool--immersive .rex-parse__toolbar {
+  display: none;
+}
+/* 沉浸浮层: 搜索框 + 退出按钮, 浮树右上角(左侧是树的 key 层级, 信息密度大, 故靠右) */
+.rex-parse__floatbar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(72%, 540px);
+}
+/* 已存搜索浮到搜索框下方, 右对齐 */
+.rex-json-tool--immersive .rex-saved {
+  position: absolute;
+  top: 56px;
+  right: 8px;
+  z-index: 20;
+  max-width: min(72%, 540px);
+  margin: 0;
+  justify-content: flex-end;
+  animation: rexImmFloatIn var(--rex-motion-emphasized) both;
+}
+@keyframes rexImmFloatIn {
+  from { opacity: 0; transform: translateY(-14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* ═══ PyCharm 风格并排 diff(SideBySideDiff)═══ */
+.rex-sbs {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--rex-mono);
+  font-size: 12.5px;
+  line-height: 22px;
+}
+.rex-sbs__main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 28px 1fr 14px;
+  gap: 0;
+}
+.rex-sbs__pane {
+  position: relative;
+  overflow: auto;
+  background: var(--rex-surface-container-low, var(--rex-surface));
+  border-top: 1px solid var(--rex-outline-variant);
+  border-bottom: 1px solid var(--rex-outline-variant);
+}
+.rex-sbs__pane--left {
+  border-left: 1px solid var(--rex-outline-variant);
+  border-top-left-radius: var(--rex-radius-md);
+  border-bottom-left-radius: var(--rex-radius-md);
+}
+.rex-sbs__pane--right {
+  border-right: 1px solid var(--rex-outline-variant);
+}
+.rex-sbs__scroller {
+  position: relative;
+  min-width: 100%;
+}
+.rex-sbs__row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  cursor: default;
+  transition: background 100ms ease;
+  border-bottom: 1px solid transparent;
+}
+/* 行号槽可点 → row 选中; content 文本可拖选复制(PyCharm 风格), cursor 也明示可选 */
+.rex-sbs__ln {
+  cursor: pointer;
+}
+.rex-sbs__content {
+  cursor: text;
+  user-select: text;
+}
+.rex-sbs__inline-diff {
+  user-select: text;
+}
+.rex-sbs__row:hover {
+  background: var(--rex-hover-overlay);
+}
+.rex-sbs__row.selected {
+  background: var(--rex-accent-bg-strong);
+  outline: 1px solid var(--rex-accent-border);
+  outline-offset: -1px;
+}
+/* 状态色: 整行底色 + 行号条左侧加竖线作为状态条 */
+.rex-sbs__row.status-changed { background: var(--rex-diff-changed-bg); }
+.rex-sbs__row.status-added { background: var(--rex-diff-added-bg); }
+.rex-sbs__row.status-removed { background: var(--rex-diff-removed-bg); }
+.rex-sbs__row.status-same { /* 透明背景 */ }
+/* gap 行: 高度 0 但 overflow visible — ::after 突出去画一条 1px 横线指示"对侧这里多出内容".
+   PyCharm 风格: 单侧差异块的对侧 row 收成一条边界线, 把"差异从哪到哪"延伸到 pane 内 */
+.rex-sbs__row--gap {
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: visible;
+  pointer-events: none;
+}
+.rex-sbs__row--gap .rex-sbs__content,
+.rex-sbs__row--gap .rex-sbs__ln { display: none; }
+.rex-sbs__row--gap::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+}
+.rex-sbs__row--gap.status-added { color: var(--rex-diff-added-fg); }
+.rex-sbs__row--gap.status-removed { color: var(--rex-diff-removed-fg); }
+
+/* 差异 block 起点/终点边线 — 跟中间梯形的上下沿连成一气, 把差异区段框出来.
+   block-start: 左侧 2px 竖线指示 + 上边线; block-end: 下边线. */
+.rex-sbs__row--block-start::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: currentColor;
+  opacity: 0.7;
+}
+.rex-sbs__row--block-start.status-changed::before { color: var(--rex-diff-changed-fg); }
+.rex-sbs__row--block-start.status-added::before { color: var(--rex-diff-added-fg); }
+.rex-sbs__row--block-start.status-removed::before { color: var(--rex-diff-removed-fg); }
+
+.rex-sbs__row--block-start { border-top-style: solid; border-top-width: 1px; }
+.rex-sbs__row--block-end { border-bottom-style: solid; border-bottom-width: 1px; }
+.rex-sbs__row--block-start.status-changed { border-top-color: var(--rex-diff-changed-fg); }
+.rex-sbs__row--block-end.status-changed { border-bottom-color: var(--rex-diff-changed-fg); }
+.rex-sbs__row--block-start.status-added { border-top-color: var(--rex-diff-added-fg); }
+.rex-sbs__row--block-end.status-added { border-bottom-color: var(--rex-diff-added-fg); }
+.rex-sbs__row--block-start.status-removed { border-top-color: var(--rex-diff-removed-fg); }
+.rex-sbs__row--block-end.status-removed { border-bottom-color: var(--rex-diff-removed-fg); }
+
+/* 字符级 inline diff — 整行底色之上再加深一档色块, 精准指出哪个字符变了 */
+.rex-sbs__inline-diff {
+  border-radius: 2px;
+  padding: 0 1px;
+  margin: 0 -1px;
+}
+.rex-sbs__inline-diff.status-changed {
+  background: var(--rex-diff-changed-fg);
+  color: var(--rex-bg);
+  opacity: 0.92;
+}
+
+.rex-sbs__ln {
+  flex-shrink: 0;
+  width: 44px;
+  padding: 2px 8px 0 0;
+  text-align: right;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.5;
+  font-size: 11px;
+  border-right: 1px solid var(--rex-outline-variant);
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+/* 多行 value 完整展开 — 移除单行截断, white-space pre-wrap 让 JSON pretty 形态自然铺开 */
+.rex-sbs__content {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 10px 2px 4px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--rex-mono);
+}
+.rex-sbs__val {
+  color: var(--rex-on-surface);
+  white-space: pre-wrap;
+}
+.rex-sbs__key { color: var(--rex-json-key); font-weight: 600; }
+.rex-sbs__sep { color: var(--rex-json-punct); margin: 0 4px 0 1px; }
+.rex-sbs__dim { color: var(--rex-json-index); opacity: 0.75; }
+.rex-sbs__placeholder {
+  display: inline-block;
+  height: 1px;
+  width: 100%;
+}
+
+/* 中间斜领带 — SVG polygon 连接左右差异 row 的上下沿, 行高不等时形成梯形 */
+.rex-sbs__gutter {
+  position: relative;
+  overflow: hidden;
+  background: var(--rex-surface-container);
+  border-top: 1px solid var(--rex-outline-variant);
+  border-bottom: 1px solid var(--rex-outline-variant);
+}
+/* gutter SVG 大小 = viewport, polygon points 用屏幕相对坐标实时计算, 不再用 translateY 平移 */
+.rex-sbs__gutter svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* 梯形填充: 面积本身可视化差异关系, 比细线直观; 边缘 stroke 提取轮廓更像 PyCharm */
+.rex-sbs__band {
+  opacity: 0.55;
+  stroke-width: 1;
+  transition: opacity 150ms ease;
+}
+.rex-sbs__band:hover { opacity: 0.85; }
+.rex-sbs__band.status-changed { fill: var(--rex-diff-changed-fg); stroke: var(--rex-diff-changed-fg); }
+.rex-sbs__band.status-added { fill: var(--rex-diff-added-fg); stroke: var(--rex-diff-added-fg); }
+.rex-sbs__band.status-removed { fill: var(--rex-diff-removed-fg); stroke: var(--rex-diff-removed-fg); }
+
+/* 右侧 minimap — 整体差异分布俯瞰图; viewport 指示器随滚动条移动; 点击 / 拖拽跳转 */
+.rex-sbs__minimap {
+  position: relative;
+  background: var(--rex-surface-container);
+  border-top: 1px solid var(--rex-outline-variant);
+  border-bottom: 1px solid var(--rex-outline-variant);
+  border-right: 1px solid var(--rex-outline-variant);
+  border-top-right-radius: var(--rex-radius-md);
+  border-bottom-right-radius: var(--rex-radius-md);
+  cursor: pointer;
+  overflow: hidden;
+}
+.rex-sbs__mm-mark {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  min-height: 2px;
+  border-radius: 1px;
+  pointer-events: none;
+}
+.rex-sbs__mm-mark.status-changed { background: var(--rex-diff-changed-fg); opacity: 0.7; }
+.rex-sbs__mm-mark.status-added { background: var(--rex-diff-added-fg); opacity: 0.7; }
+.rex-sbs__mm-mark.status-removed { background: var(--rex-diff-removed-fg); opacity: 0.7; }
+.rex-sbs__mm-thumb {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--rex-accent-bg-strong);
+  border-top: 1px solid var(--rex-accent-border);
+  border-bottom: 1px solid var(--rex-accent-border);
+  pointer-events: none;
+  transition: top 80ms linear;
+}
+
+/* ═══ 对比模块 — 去 col-tag 后的简化样式 + 沉浸响应 ═══ */
+/* col 容器作为相对定位上下文, 让 "打开文件" 浮在 textarea 右上角 */
+.rex-compare__col { position: relative; }
+.rex-compare__col-open {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 2;
+  opacity: 0.7;
+  transition: opacity 150ms ease;
+}
+.rex-compare__col-open:hover { opacity: 1; }
+
+/* 沉浸: 输入栏 + 动作条收起, SBS 占满 */
+.rex-compare__inputs,
+.rex-compare__bar {
+  overflow: hidden;
+  transition: max-height var(--rex-motion-emphasized), opacity var(--rex-motion-standard),
+    margin var(--rex-motion-emphasized), flex var(--rex-motion-emphasized);
+}
+.rex-json-tool--immersive .rex-compare__inputs {
+  flex: 0 0 0 !important;
+  max-height: 0;
+  min-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+.rex-json-tool--immersive .rex-compare__bar {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+.rex-compare {
+  outline: none;
+}
+
+/* 浮层进出动画 — 淡入淡出 + 轻微下滑/缩放, 替代 position 突变的生硬切换 */
+.rex-immfloat-enter-active {
+  transition: opacity var(--rex-motion-emphasized), transform var(--rex-motion-emphasized);
+}
+.rex-immfloat-leave-active {
+  transition: opacity var(--rex-motion-standard), transform var(--rex-motion-standard);
+}
+.rex-immfloat-enter-from {
+  opacity: 0;
+  transform: translateY(-16px) scale(0.94);
+}
+.rex-immfloat-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.96);
 }
