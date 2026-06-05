@@ -95,6 +95,10 @@
   margin-right: -14px;
   pointer-events: none;
 }
+/* 沉浸切换动画(进/出)全程把 textarea 移出布局 —— 否则横向收/展会让大段原文每帧重新折行, 按 Q 卡 */
+.rex-parse__textarea--off {
+  display: none;
+}
 .rex-parse__textarea {
   flex: 1;
   width: 100%;
@@ -418,6 +422,55 @@
 }
 .rex-compare__spin {
   opacity: 0.7;
+}
+.rex-compare__match {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.rex-compare__match-label {
+  font-size: 11px;
+  color: var(--rex-on-surface-variant);
+  opacity: 0.7;
+  margin-right: 2px;
+}
+.rex-compare__match-btn {
+  padding: 3px 10px;
+  border-radius: var(--rex-radius-full);
+  border: 1px solid var(--rex-outline-variant);
+  background: transparent;
+  color: var(--rex-on-surface-variant);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+.rex-compare__match-btn:hover {
+  background: var(--rex-hover-overlay);
+}
+.rex-compare__match-btn.active {
+  background: var(--rex-accent-bg-strong);
+  color: var(--rex-primary);
+  border-color: var(--rex-accent-border);
+}
+.rex-compare__match-key {
+  width: 150px;
+  padding: 3px 10px;
+  border-radius: var(--rex-radius-full);
+  border: 1px solid var(--rex-outline-variant);
+  background: var(--rex-surface-container);
+  color: var(--rex-on-surface);
+  font-family: var(--rex-mono);
+  font-size: 11.5px;
+  outline: none;
+  transition: border-color 140ms ease;
+}
+.rex-compare__match-key:focus {
+  border-color: var(--rex-primary);
+}
+.rex-compare__match-key::placeholder {
+  color: var(--rex-on-surface-variant);
+  opacity: 0.5;
 }
 .rex-compare__error {
   display: flex;
@@ -963,6 +1016,20 @@
   position: relative;
   min-width: 100%;
 }
+/* canvas 并排 diff 宿主 — 充满 result 区(减去底部 selbar), canvas 自适应填充 */
+.rex-sbsc {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+.rex-sbsc__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .rex-sbs__row {
   position: relative;
   display: flex;
@@ -985,10 +1052,10 @@
 .rex-sbs__row:hover {
   background: var(--rex-hover-overlay);
 }
+/* 选中行: 强调底色压过状态色 + 主色左条, 左键选中一眼可见(两侧 pane 同步) */
 .rex-sbs__row.selected {
-  background: var(--rex-accent-bg-strong);
-  outline: 1px solid var(--rex-accent-border);
-  outline-offset: -1px;
+  background: var(--rex-accent-bg-strong) !important;
+  box-shadow: inset 2px 0 0 var(--rex-primary);
 }
 /* 状态色: 整行底色 + 行号条左侧加竖线作为状态条 */
 .rex-sbs__row.status-changed { background: var(--rex-diff-changed-bg); }
@@ -1071,6 +1138,7 @@
 }
 /* 多行 value 完整展开 — 移除单行截断, white-space pre-wrap 让 JSON pretty 形态自然铺开 */
 .rex-sbs__content {
+  position: relative;
   flex: 1;
   min-width: 0;
   padding: 2px 10px 2px 4px;
@@ -1085,6 +1153,17 @@
 .rex-sbs__key { color: var(--rex-json-key); font-weight: 600; }
 .rex-sbs__sep { color: var(--rex-json-punct); margin: 0 4px 0 1px; }
 .rex-sbs__dim { color: var(--rex-json-index); opacity: 0.75; }
+.rex-sbs__brace { color: var(--rex-json-punct); font-weight: 600; }
+/* 缩进引导线 — 跟解析树一致, 每个祖先层一条竖线, 上下行同 x 连成一气, 结构一目了然 */
+.rex-sbs__guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--rex-outline-variant);
+  opacity: 0.5;
+  pointer-events: none;
+}
 .rex-sbs__placeholder {
   display: inline-block;
   height: 1px;

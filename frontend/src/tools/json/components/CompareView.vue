@@ -44,6 +44,29 @@
     <div class="rex-compare__bar">
       <CompareSummary v-if="result && !error && !immersive" :stats="result.stats" :filter="filter" @set-filter="filter = $event" />
       <v-progress-circular v-if="loading" size="14" width="2" indeterminate color="primary" class="rex-compare__spin" />
+      <div class="rex-compare__match">
+        <span class="rex-compare__match-label">列表</span>
+        <button
+          class="rex-compare__match-btn"
+          :class="{ active: arrayMode === 'key' }"
+          title="智能匹配: 对象按主键、标量按值配对(乱序 / 增删不级联)"
+          @click="arrayMode = 'key'"
+        >智能</button>
+        <button
+          class="rex-compare__match-btn"
+          :class="{ active: arrayMode === 'index' }"
+          title="按下标对位(顺序敏感)"
+          @click="arrayMode = 'index'"
+        >按位</button>
+        <input
+          v-if="arrayMode === 'key'"
+          v-model="arrayKey"
+          class="rex-compare__match-key"
+          placeholder="主键/路径 自动"
+          title="对象列表按这个字段或路径配对; 支持嵌套与通配, 如 fromSegments.flightNo、fromSegments[*].flightNo、fromSegments[0].flightNo; 留空自动探测 id/_id/key/name。路径只作用于含它的数组, 其余仍自动探测"
+          spellcheck="false"
+        />
+      </div>
       <v-btn class="rex-compare__bar-swap" size="small" variant="text" prepend-icon="mdi-swap-horizontal" @click="swap">交换</v-btn>
     </div>
 
@@ -75,6 +98,15 @@
       />
       <div v-if="selectedRow" class="rex-parse__selbar">
         <span class="rex-parse__selpath" :title="selectedRow.path">{{ selectedRow.path }}</span>
+        <v-btn
+          v-if="selectedKeyPath"
+          size="x-small"
+          variant="tonal"
+          color="primary"
+          prepend-icon="mdi-key-outline"
+          :title="`列表按 ${selectedKeyPath} 配对`"
+          @click="useAsKey"
+        >设为主键</v-btn>
         <v-btn size="x-small" variant="text" prepend-icon="mdi-map-marker-path" @click="copy(selectedRow.path, '已复制路径')">路径</v-btn>
         <v-btn size="x-small" variant="text" :disabled="!selectedRow.left" @click="copy(selectedRow.left, '已复制左值')">A 值</v-btn>
         <v-btn size="x-small" variant="text" :disabled="!selectedRow.right" @click="copy(selectedRow.right, '已复制右值')">B 值</v-btn>
@@ -218,9 +250,38 @@ const selectedRowIdx = ref(-1)
 const toast = ref({ show: false, text: '', error: false })
 let toastTimer: number | undefined
 
+// 数组(列表)匹配方式 — 持久化, 默认智能(主键/值对齐)
+const arrayMode = ref<'key' | 'index'>(
+  localStorage.getItem('ria-diff-array-mode') === 'index' ? 'index' : 'key',
+)
+const arrayKey = ref(localStorage.getItem('ria-diff-array-key') || '')
+watch(arrayMode, (v) => localStorage.setItem('ria-diff-array-mode', v))
+watch(arrayKey, (v) => localStorage.setItem('ria-diff-array-key', v))
+
 const selectedRow = computed<DiffRow | null>(() =>
   result.value && selectedRowIdx.value >= 0 ? result.value.rows[selectedRowIdx.value] ?? null : null,
 )
+
+// selectedKeyPath 由选中行 path 推出"相对最外层数组元素"的路径, 作为列表主键候选.
+// 例: $.routing[flightNo="OZ1085"].fromSegments[0].flightNo → fromSegments[0].flightNo
+const selectedKeyPath = computed(() => {
+  const p = selectedRow.value?.path
+  if (!p) return ''
+  const i = p.indexOf(']') // 第一个数组元素括号的末尾
+  if (i < 0) return ''
+  return p.slice(i + 1).replace(/^\./, '')
+})
+
+function useAsKey() {
+  if (!selectedKeyPath.value) return
+  arrayMode.value = 'key'
+  arrayKey.value = selectedKeyPath.value
+  toast.value = { show: true, text: `已设为主键: ${selectedKeyPath.value}`, error: false }
+  window.clearTimeout(toastTimer)
+  toastTimer = window.setTimeout(() => {
+    toast.value = { ...toast.value, show: false }
+  }, 1600)
+}
 
 async function compare() {
   if (!leftText.value.trim() || !rightText.value.trim()) {
@@ -231,7 +292,10 @@ async function compare() {
   loading.value = true
   error.value = ''
   try {
-    const res = await diffJson(leftText.value, rightText.value)
+    const res = await diffJson(leftText.value, rightText.value, {
+      arrayMode: arrayMode.value,
+      arrayKey: arrayKey.value.trim(),
+    })
     if (res.error) {
       error.value = res.error
       result.value = null
@@ -245,9 +309,9 @@ async function compare() {
   }
 }
 
-// 响应式对比 — 任一侧改动触发 debounce, 不用点按钮; 300ms 内连续打字合并成一次
+// 响应式对比 — 任一侧或匹配选项改动触发 debounce, 不用点按钮; 300ms 内连续打字合并成一次
 let compareTimer: number | undefined
-watch([leftText, rightText], () => {
+watch([leftText, rightText, arrayMode, arrayKey], () => {
   window.clearTimeout(compareTimer)
   compareTimer = window.setTimeout(() => compare(), 300)
 })

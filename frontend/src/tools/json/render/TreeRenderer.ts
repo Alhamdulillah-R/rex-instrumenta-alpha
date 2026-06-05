@@ -59,6 +59,8 @@ export class TreeRenderer {
   private dragV = false
   private dragH = false
   private dragOffset = 0
+  private frozen = false
+  private freezeTimer: number | undefined
   private ro: ResizeObserver
 
   constructor(
@@ -153,6 +155,7 @@ export class TreeRenderer {
   }
 
   destroy(): void {
+    window.clearTimeout(this.freezeTimer)
     this.ro.disconnect()
     this.unbindEvents()
   }
@@ -220,12 +223,15 @@ export class TreeRenderer {
   }
 
   private resize(): void {
+    if (this.frozen) return // 沉浸动画期间冻结, 不每帧重建后备缓冲(修按 Q 卡顿)
     const rect = this.canvas.getBoundingClientRect()
     const w = Math.max(0, Math.floor(rect.width))
     const h = Math.max(0, Math.floor(rect.height))
     this.dpr = Math.max(1, Math.ceil(window.devicePixelRatio || 1))
-    this.canvas.width = w * this.dpr
-    this.canvas.height = h * this.dpr
+    const bw = w * this.dpr
+    const bh = h * this.dpr
+    if (this.canvas.width !== bw) this.canvas.width = bw
+    if (this.canvas.height !== bh) this.canvas.height = bh
     this.vp.viewWidth = w
     this.vp.viewHeight = h
     this.vp.setScrollTop(this.vp.scrollTop)
@@ -233,6 +239,32 @@ export class TreeRenderer {
     // 同步重绘 —— setting canvas.width 已清空画布, 走 rAF 会留一帧空白; nav 宽度动画期
     // ResizeObserver 连发会导致整片空白("json 消失"). 直接 draw 消除空帧.
     this.draw()
+  }
+
+  // onFreeze 收到沉浸切换信号: 钉住 canvas 当前尺寸 + 动画期间忽略 resize, 结束后只 resize 一次.
+  private onFreeze = (e: Event): void => {
+    const ms = (e as CustomEvent<{ ms?: number }>).detail?.ms ?? 500
+    if (!this.frozen) {
+      const rect = this.canvas.getBoundingClientRect()
+      this.canvas.style.width = rect.width + 'px'
+      this.canvas.style.height = rect.height + 'px'
+      this.frozen = true
+      this.draw() // 冻结后重画一帧(去掉滚动条), 让淡出的旧内容不带旧滚动条
+      // 淡出: 旧内容 1→0. 用 WAAPI 而非 CSS transition —— 后者同帧改样式不触发, 正是"闪烁"的根因.
+      // animate(fill:none) 结束后回落到 base, 故把 base opacity 钉成 0, 保持透明直到 settle.
+      this.canvas.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease' })
+      this.canvas.style.opacity = '0'
+    }
+    window.clearTimeout(this.freezeTimer)
+    this.freezeTimer = window.setTimeout(() => {
+      this.frozen = false
+      this.canvas.style.width = ''
+      this.canvas.style.height = ''
+      this.resize() // 按新尺寸重建+重画一次(此时仍透明, 用户看不到硬切)
+      // 淡入: 新内容 0→1. base 清回默认(=1), animate 跑完正好落在 1, 不留残留 inline 样式.
+      this.canvas.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 280, easing: 'ease-out' })
+      this.canvas.style.opacity = ''
+    }, ms)
   }
 
   private scheduleDraw(): void {
@@ -266,8 +298,11 @@ export class TreeRenderer {
 
     this.vp.contentWidth = this.maxContentWidth
     this.vp.setScrollLeft(this.vp.scrollLeft)
-    this.drawBar(this.vp.scrollbarV())
-    this.drawBar(this.vp.scrollbarH())
+    // 冻结期间(沉浸动画)不画滚动条 —— 否则旧尺寸的滚动条会卡在变大后容器的中间, 结束再瞬移
+    if (!this.frozen) {
+      this.drawBar(this.vp.scrollbarV())
+      this.drawBar(this.vp.scrollbarH())
+    }
   }
 
   private drawRow(rowValue: number, visIndex: number): void {
@@ -559,6 +594,7 @@ export class TreeRenderer {
     this.canvas.addEventListener('auxclick', this.preventAux)
     window.addEventListener('keydown', this.onKeyDown)
     window.addEventListener('rex-theme-sync', this.onThemeSync)
+    window.addEventListener('rex-canvas-freeze', this.onFreeze)
   }
 
   // 屏蔽中键的默认自动滚动
@@ -584,5 +620,6 @@ export class TreeRenderer {
     this.canvas.removeEventListener('auxclick', this.preventAux)
     window.removeEventListener('keydown', this.onKeyDown)
     window.removeEventListener('rex-theme-sync', this.onThemeSync)
+    window.removeEventListener('rex-canvas-freeze', this.onFreeze)
   }
 }

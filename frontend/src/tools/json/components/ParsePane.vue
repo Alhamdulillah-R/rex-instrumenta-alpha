@@ -200,6 +200,7 @@
           ref="textareaEl"
           :value="rawText"
           class="rex-parse__textarea"
+          :class="{ 'rex-parse__textarea--off': hideInputText }"
           spellcheck="false"
           placeholder="把 JSON 粘贴到这里 — 右侧实时解析。也可直接在右侧粘贴 (Ctrl+V) 并自动收起此栏"
           @input="onInput"
@@ -348,6 +349,19 @@ const textareaEl = ref<HTMLTextAreaElement | null>(null)
 
 const { immersive, toggle, exit } = useImmersive()
 const route = useRoute()
+
+// 沉浸进/出是 ~500ms 横向收/展动画; 全程把输入 textarea 移出布局(display:none)—— 否则几百 KB
+// 原文随宽度每帧重新折行, 进、出都卡(连带滚动条反复出现). 动画结束且非沉浸时才恢复显示.
+const transitioning = ref(false)
+let transTimer: number | undefined
+watch(immersive, () => {
+  transitioning.value = true
+  window.clearTimeout(transTimer)
+  transTimer = window.setTimeout(() => {
+    transitioning.value = false
+  }, 560)
+})
+const hideInputText = computed(() => immersive.value || transitioning.value)
 
 const rawText = ref('')
 const selectedId = ref(-1)

@@ -14,7 +14,8 @@ func New() *Service {
 // 任一侧解析失败时 DiffResult.Error 带错误信息, Rows 为空.
 // @param leftText  左侧(样本 A) JSON 文本
 // @param rightText 右侧(样本 B) JSON 文本
+// @param opts      数组对齐选项(智能主键/值匹配 vs 按下标; 可指定主键字段)
 // @return 展平 diff 结果(行 + 统计 + 可能的错误)
-func (s *Service) Diff(leftText, rightText string) DiffResult {
-	return diffTexts(leftText, rightText)
+func (s *Service) Diff(leftText, rightText string, opts DiffOptions) DiffResult {
+	return diffTexts(leftText, rightText, opts)
 }

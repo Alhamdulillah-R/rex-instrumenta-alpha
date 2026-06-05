@@ -152,6 +152,20 @@ export namespace jsonstore {
 
 export namespace jsontool {
 	
+	export class DiffOptions {
+	    arrayMode: string;
+	    arrayKey: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new DiffOptions(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.arrayMode = source["arrayMode"];
+	        this.arrayKey = source["arrayKey"];
+	    }
+	}
 	export class DiffStats {
 	    total: number;
 	    same: number;
